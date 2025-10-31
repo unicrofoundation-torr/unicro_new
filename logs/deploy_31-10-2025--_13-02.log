@@ -9,3 +9,65 @@ mysqldump: [Warning] Using a password on the command line interface can be insec
 ✅ Backup successful 
  
 📦 Pushing latest code to GitHub... 
+warning: adding embedded git repository: git-filter-repo
+hint: You've added another git repository inside your current repository.
+hint: Clones of the outer repository will not contain the contents of
+hint: the embedded repository and will not know how to obtain it.
+hint: If you meant to add a submodule, use:
+hint:
+hint: 	git submodule add <url> git-filter-repo
+hint:
+hint: If you added this path by mistake, you can remove it from the
+hint: index with:
+hint:
+hint: 	git rm --cached git-filter-repo
+hint:
+hint: See "git help submodule" for more information.
+hint: Disable this message with "git config advice.addEmbeddedRepo false"
+[main ba72459] Auto-deploy: 31-10-2025 13:02:08.45
+ 18 files changed, 9202 insertions(+)
+ create mode 100644 .env
+ create mode 100644 backup-db.bat
+ create mode 100644 backups/charity_website_31-10-2025--_13-02.sql
+ create mode 100644 backups/unicr_backup_--_12-19.sql
+ create mode 100644 backups/unicr_backup_--_12-20.sql
+ create mode 100644 backups/unicr_backup_--_12-22.sql
+ create mode 100644 backups/unicr_backup_-0--02_12-25.sql
+ create mode 100644 backups/unicr_backup_31-10-2025_12-29-19.11.sql
+ create mode 100644 backups/unicr_backup_31-10-2025_12-30-06.73.sql
+ create mode 100644 backups/unicr_backup_31-10-2025_12-31-49.90.sql
+ create mode 100644 backups/unicr_backup_31-10-2025_12-32-35.23.sql
+ create mode 100644 backups/unicr_backup_31-10-2025_12-33-10.77.sql
+ create mode 100644 deploy.bat
+ create mode 160000 git-filter-repo
+ create mode 100644 logs/deploy_31-10-2025--_12-40.log
+ create mode 100644 logs/deploy_31-10-2025--_12-43.log
+ create mode 100644 logs/deploy_31-10-2025--_13-02.log
+ create mode 100644 logs/deploy_31-10-2025_12-38-55.27.log
+remote: error: GH013: Repository rule violations found for refs/heads/main.        
+remote: 
+remote: - GITHUB PUSH PROTECTION        
+remote:   —————————————————————————————————————————        
+remote:     Resolve the following violations before pushing again        
+remote: 
+remote:     - Push cannot contain secrets        
+remote: 
+remote:             
+remote:      (?) Learn how to resolve a blocked push        
+remote:      https://docs.github.com/code-security/secret-scanning/working-with-secret-scanning-and-push-protection/working-with-push-protection-from-the-command-line#resolving-a-blocked-push        
+remote:             
+remote:             
+remote:       —— Cashfree API Key ——————————————————————————————————        
+remote:        locations:        
+remote:          - commit: ba7245962b8c97d5ff95f0d79a711fb9426f5d48        
+remote:            path: .env:9        
+remote:             
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.        
+remote:        https://github.com/unicrofoundation-torr/unicro_new/security/secret-scanning/unblock-secret/34nYcw4osk7RLdyb2bLQXos27yl        
+remote:             
+remote: 
+remote: 
+To https://github.com/unicrofoundation-torr/unicro_new.git
+ ! [remote rejected] main -> main (push declined due to repository rule violations)
+error: failed to push some refs to 'https://github.com/unicrofoundation-torr/unicro_new.git'
+❌ Git push failed Aborting. 
