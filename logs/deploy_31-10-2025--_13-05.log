@@ -9,3 +9,16 @@ mysqldump: [Warning] Using a password on the command line interface can be insec
 ✅ Backup successful 
  
 📦 Pushing latest code to GitHub... 
+warning: in the working copy of 'logs/deploy_31-10-2025--_13-04.log', LF will be replaced by CRLF the next time Git touches it
+[main 9fb3815] Auto-deploy: 31-10-2025 13:05:58.78
+ 4 files changed, 427 insertions(+), 1 deletion(-)
+ create mode 100644 backups/charity_website_31-10-2025--_13-05.sql
+ create mode 100644 logs/deploy_31-10-2025--_13-05.log
+To https://github.com/unicrofoundation-torr/unicro_new.git
+   beb3180..9fb3815  main -> main
+✅ GitHub push successful 
+ 
+🌐 Uploading to cPanel using rsync... 
+'rsync' is not recognized as an internal or external command,
+operable program or batch file.
+❌ Deployment failed 

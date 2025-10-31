@@ -1,0 +1,17 @@
+💾 Taking MySQL Backup...
+mysqldump: [Warning] Using a password on the command line interface can be insecure.
+✅ MySQL backup successful: /mnt/e/kanishk data/projects/UNICRO/backups/charity_website_31-10-2025_08-18.sql
+📦 Pushing latest code to GitHub...
+Author identity unknown
+
+*** Please tell me who you are.
+
+Run
+
+  git config --global user.email "you@example.com"
+  git config --global user.name "Your Name"
+
+to set your account's default identity.
+Omit --global to set the identity only in this repository.
+
+fatal: empty ident name (for <rootubu@KanishkRaj.localdomain>) not allowed

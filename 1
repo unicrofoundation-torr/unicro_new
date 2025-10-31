@@ -1,0 +1,17 @@
+#!/bin/bash
+echo "🚀 Starting Deployment..."
+
+echo "💾 Taking MySQL Backup..."
+/mnt/c/Program\ Files/MySQL/MySQL\ Server\ 8.0/bin/mysqldump -u root -proot123 charity_website > backups/charity_website_$(date +%d-%m-%Y_%H-%M).sql
+
+echo "📤 Uploading files via rsync..."
+rsync -avz -e "ssh -i /mnt/c/Users/KanishkRajSinghDodiy/Downloads/id_rsa_openssh.pem -p 21098" \
+/mnt/c/Users/KanishkRajSinghDodiy/Desktop/UNICRO/ \
+theomkiq@server357.web-hosting.com:~/public_html/
+
+if [ $? -eq 0 ]; then
+  echo "✅ Deployment successful!"
+else
+  echo "❌ Deployment failed!"
+fi
+

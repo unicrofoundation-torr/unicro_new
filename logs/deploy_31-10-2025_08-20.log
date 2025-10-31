@@ -1,0 +1,29 @@
+💾 Taking MySQL Backup...
+mysqldump: [Warning] Using a password on the command line interface can be insecure.
+✅ MySQL backup successful: /mnt/e/kanishk data/projects/UNICRO/backups/charity_website_31-10-2025_08-20.sql
+📦 Pushing latest code to GitHub...
+Author identity unknown
+
+*** Please tell me who you are.
+
+Run
+
+  git config --global user.email "you@example.com"
+  git config --global user.name "Your Name"
+
+to set your account's default identity.
+Omit --global to set the identity only in this repository.
+
+fatal: empty ident name (for <rootubu@KanishkRaj.localdomain>) not allowed
+remote: Invalid username or token. Password authentication is not supported for Git operations.
+fatal: Authentication failed for 'https://github.com/unicrofoundation-torr/unicro_new.git/'
+⚠️ Git push failed — continuing deployment
+🌐 Uploading to cPanel using rsync...
+Warning: Permanently added '[server357.web-hosting.com]:21098' (ED25519) to the list of known hosts.
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@         WARNING: UNPROTECTED PRIVATE KEY FILE!          @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+Permissions 0777 for '/mnt/c/Users/KanishkRajSinghDodiy/Downloads/key_private' are too open.
+It is required that your private key files are NOT accessible by others.
+This private key will be ignored.
+Load key "/mnt/c/Users/KanishkRajSinghDodiy/Downloads/key_private": bad permissions
