@@ -6,7 +6,7 @@ setlocal ENABLEDELAYEDEXPANSION
 :: ============================================
 set "PROJECT_DIR=E:\kanishk data\projects\UNICRO"
 set "LOG_DIR=%PROJECT_DIR%\logs"
-set "PEM_PATH=C:\Users\KanishkRajSinghDodiy\Downloads\key_private.pem"
+set "PEM_PATH=C:\Users\KanishkRajSinghDodiy\Downloads\key_private"
 set "CPANEL_USER=theomkiq"
 set "SERVER=server357.web-hosting.com"
 set "PORT=21098"

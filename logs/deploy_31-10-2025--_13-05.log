@@ -1,0 +1,11 @@
+===================================================== 
+🚀 Deployment started at 31-10-2025 13:05:58.07 
+===================================================== 
+ 
+💾 Taking MySQL Backup... 
+Creating MySQL backup file: E:\kanishk data\projects\UNICRO\backups\charity_website_31-10-2025--_13-05.sql
+mysqldump: [Warning] Using a password on the command line interface can be insecure.
+✅ MySQL backup successful
+✅ Backup successful 
+ 
+📦 Pushing latest code to GitHub... 
