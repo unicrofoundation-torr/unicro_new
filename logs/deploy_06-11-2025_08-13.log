@@ -2,3 +2,108 @@
 mysqldump: [Warning] Using a password on the command line interface can be insecure.
 ✅ MySQL backup successful: /mnt/e/kanishk data/projects/UNICRO/backups/charity_website_06-11-2025_08-13.sql
 📦 Pushing latest code to GitHub...
+[main 817011e] Auto-deploy: Thu Nov  6 08:13:49 UTC 2025
+ 4 files changed, 476 insertions(+), 1 deletion(-)
+ create mode 100644 backups/charity_website_06-11-2025_08-13.sql
+ create mode 100644 logs/deploy_06-11-2025_08-13.log
+To https://github.com/unicrofoundation-torr/unicro_new.git
+   b513ca0..817011e  main -> main
+✅ GitHub push successful
+🌐 Uploading client (frontend) to cPanel...
+sending incremental file list
+client/
+client/README.md
+client/package-lock.json
+client/package.json
+client/postcss.config.js
+client/tailwind.config.js
+client/public/
+client/public/favicon.ico
+client/public/index.html
+client/public/logo192.png
+client/public/logo512.png
+client/public/manifest.json
+client/public/robots.txt
+client/public/images/
+client/public/images/gallery/
+client/public/images/our-work/
+client/public/uploads/
+client/public/uploads/logo-1760602707648-414861542.png
+client/public/uploads/slider-1760607543331-848370662.jpeg
+client/public/uploads/slider-1760607676270-46676797.jpg
+client/public/uploads/blogs/
+client/public/uploads/blogs/image-1762415018037-310476965.png
+client/public/uploads/gallery/
+client/public/uploads/gallery/file-1761553878966-389787429.mp4
+client/public/uploads/gallery/file-1761553994467-847974385.mp4
+client/public/uploads/gallery/file-1761554443908-558969165.mp4
+client/public/uploads/gallery/file-1761808433805-270845969.jpg
+client/public/uploads/gallery/image-1761545067430-3733912.jpeg
+client/public/uploads/gallery/image-1761545603443-331250820.jpeg
+client/public/uploads/gallery/image-1761545603464-728721846.jpeg
+client/public/uploads/gallery/image-1761545603468-563504159.jpeg
+client/public/uploads/gallery/image-1761545603477-528502307.jpeg
+client/public/uploads/gallery/image-1761545603484-474807791.jpeg
+client/public/uploads/gallery/image-1761545646164-119015798.jpeg
+client/public/uploads/gallery/image-1761545646193-167496359.jpeg
+client/public/uploads/gallery/image-1761545646206-885731558.jpeg
+client/public/uploads/gallery/image-1761545646221-859674821.jpeg
+client/public/uploads/gallery/image-1761545646233-280772266.jpeg
+client/public/uploads/gallery/image-1761549838247-895066506.jpeg
+client/public/uploads/gallery/image-1761549838260-292817717.jpeg
+client/public/uploads/gallery/image-1761549838267-777150561.jpeg
+client/public/uploads/gallery/image-1761549838283-97900579.jpeg
+client/public/uploads/our-work/
+client/public/uploads/our-work/after_image-1761553397887-60432303.jpeg
+client/public/uploads/our-work/before_image-1761553397884-613423149.jpeg
+client/src/
+client/src/App.css
+client/src/App.js
+client/src/App.test.js
+client/src/index.css
+client/src/index.js
+client/src/logo.svg
+client/src/reportWebVitals.js
+client/src/setupTests.js
+client/src/components/
+client/src/components/Footer.js
+client/src/components/Navigation.css
+client/src/components/Navigation.js
+client/src/components/OurWorkSlider.js
+client/src/components/PageBanner.js
+client/src/components/PageViewer.js
+client/src/components/Slider.js
+client/src/components/admin/
+client/src/components/admin/BlogManager.js
+client/src/components/admin/ContactMessagesManager.js
+client/src/components/admin/FooterManager.js
+client/src/components/admin/GalleryManager.js
+client/src/components/admin/NavigationManager.js
+client/src/components/admin/NewsletterManager.js
+client/src/components/admin/OurWorkManager.js
+client/src/components/admin/PageManager.js
+client/src/components/admin/SiteSettingsManager.css
+client/src/components/admin/SiteSettingsManager.js
+client/src/components/admin/SliderManager.js
+client/src/pages/
+client/src/pages/About.js
+client/src/pages/AdminLogin.js
+client/src/pages/AdminPanel.js
+client/src/pages/Blog.js
+client/src/pages/BlogDetail.js
+client/src/pages/ComingSoon.js
+client/src/pages/Contact.js
+client/src/pages/Donate.js
+client/src/pages/Events.js
+client/src/pages/Gallery.js
+client/src/pages/Home.js
+client/src/pages/Privacy.js
+client/src/pages/RefundPolicy.js
+client/src/pages/Shortcodes.js
+client/src/pages/Terms.js
+client/src/services/
+client/src/services/api.js
+
+sent 15,575,538 bytes  received 1,590 bytes  1,483,536.00 bytes/sec
+total size is 16,352,040  speedup is 1.05
+✅ Frontend deployed successfully!
