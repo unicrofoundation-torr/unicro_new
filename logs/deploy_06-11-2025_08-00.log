@@ -2,3 +2,29 @@
 mysqldump: [Warning] Using a password on the command line interface can be insecure.
 ✅ MySQL backup successful: /mnt/e/kanishk data/projects/UNICRO/backups/charity_website_06-11-2025_08-00.sql
 📦 Pushing latest code to GitHub...
+[main 47ddbd8] Auto-deploy: Thu Nov  6 08:00:19 UTC 2025
+ 11 files changed, 1052 insertions(+), 1 deletion(-)
+ create mode 100644 DEPLOY.md
+ create mode 100644 backups/charity_website_06-11-2025_08-00.sql
+ create mode 100644 deploy-live.bat
+ create mode 100644 deploy-live.sh
+ create mode 100644 deploy_v1.sh
+ create mode 100644 logs/deploy_06-11-2025_08-00.log
+ create mode 100644 routes/blogs.js
+To https://github.com/unicrofoundation-torr/unicro_new.git
+   774ecfd..47ddbd8  main -> main
+✅ GitHub push successful
+🌐 Uploading client (frontend) to cPanel...
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@         WARNING: UNPROTECTED PRIVATE KEY FILE!          @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+Permissions 0777 for '/mnt/c/Users/KanishkRajSinghDodiy/Downloads/key_private' are too open.
+It is required that your private key files are NOT accessible by others.
+This private key will be ignored.
+Load key "/mnt/c/Users/KanishkRajSinghDodiy/Downloads/key_private": bad permissions
+Permission denied, please try again.
+Permission denied, please try again.
+theomkiq@server357.web-hosting.com: Permission denied (publickey,gssapi-keyex,gssapi-with-mic,password).
+rsync: connection unexpectedly closed (0 bytes received so far) [sender]
+rsync error: unexplained error (code 255) at io.c(232) [sender=3.2.7]
+❌ Deployment failed during upload.
