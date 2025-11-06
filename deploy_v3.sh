@@ -123,23 +123,25 @@ if [ "$CLIENT_CHANGED" = true ] || [ "$CHANGED_FILES" = "initial_deployment" ] |
     --exclude '.env' \
     --exclude '*.map' \
     --exclude '.DS_Store' \
+    --include '.htaccess' \
     -e "ssh -i $PRIVATE_KEY -p $CPANEL_PORT" \
     "$BUILD_DIR/" $CPANEL_USER@$CPANEL_HOST:$REMOTE_DIR/
 else
   # No client changes - but still sync to catch any manual changes or ensure consistency
   echo "📤 Syncing build directory (incremental - only changed files)..."
-  rsync -avz \
-    --progress \
-    --checksum \
-    --update \
-    --delete \
-    --exclude 'node_modules/' \
-    --exclude '.git/' \
-    --exclude '.env' \
-    --exclude '*.map' \
-    --exclude '.DS_Store' \
-    -e "ssh -i $PRIVATE_KEY -p $CPANEL_PORT" \
-    "$BUILD_DIR/" $CPANEL_USER@$CPANEL_HOST:$REMOTE_DIR/
+    rsync -avz \
+      --progress \
+      --checksum \
+      --update \
+      --delete \
+      --exclude 'node_modules/' \
+      --exclude '.git/' \
+      --exclude '.env' \
+      --exclude '*.map' \
+      --exclude '.DS_Store' \
+      --include '.htaccess' \
+      -e "ssh -i $PRIVATE_KEY -p $CPANEL_PORT" \
+      "$BUILD_DIR/" $CPANEL_USER@$CPANEL_HOST:$REMOTE_DIR/
 fi
 
 if [ $? -eq 0 ]; then

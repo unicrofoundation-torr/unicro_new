@@ -65,10 +65,12 @@ echo "🌐 Uploading build folder to cPanel..."
 ssh -i "$PRIVATE_KEY" -p $CPANEL_PORT $CPANEL_USER@$CPANEL_HOST "rm -rf $REMOTE_DIR/*"
 
 # Upload new build (ignore node_modules, git files, backups)
+# Include .htaccess for React Router support
 rsync -avz \
   --exclude 'node_modules/' \
   --exclude '.git/' \
   --exclude '.env' \
+  --include '.htaccess' \
   -e "ssh -i $PRIVATE_KEY -p $CPANEL_PORT" \
   "$CLIENT_DIR/build/" $CPANEL_USER@$CPANEL_HOST:$REMOTE_DIR
 
