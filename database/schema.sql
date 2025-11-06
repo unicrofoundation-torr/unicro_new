@@ -206,3 +206,25 @@ INSERT INTO gallery (title, description, image_url, image_alt, category, sort_or
 ('Food Distribution', 'Organized food distribution ensuring families have access to nutritious meals.', '/images/gallery/food-1.jpg', 'Food distribution to families in need', 'food', 4),
 ('Medical Camp', 'Free medical camps providing healthcare services to community members.', '/images/gallery/medical-1.jpg', 'Medical camp providing healthcare services', 'healthcare', 5),
 ('Infrastructure Project', 'Building essential infrastructure to improve community living conditions.', '/images/gallery/infrastructure-1.jpg', 'Infrastructure development project', 'infrastructure', 6);
+
+-- Create blogs table
+CREATE TABLE IF NOT EXISTS blogs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) UNIQUE NOT NULL,
+    excerpt TEXT,
+    content TEXT NOT NULL,
+    image_url VARCHAR(500),
+    image_alt VARCHAR(255),
+    author VARCHAR(100) DEFAULT 'Admin',
+    is_published BOOLEAN DEFAULT TRUE,
+    sort_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Insert default blog entries
+INSERT INTO blogs (title, slug, excerpt, content, image_url, image_alt, author, sort_order) VALUES
+('The Power of One Rupee', 'power-of-one-rupee', 'Discover how small donations are creating big changes in communities around the world.', '<h2>Introduction</h2><p>Every single rupee you give holds the power to create a smile. Your ₹1 can bring warmth, hope, and happiness to a child who dreams of a better tomorrow.</p><h2>The Impact</h2><p>Through our transparent donation system, we ensure that every contribution, no matter how small, reaches those who need it most. Together, we are building a movement of compassion and change.</p>', '/images/blog/blog-1.jpg', 'The Power of One Rupee', 'Admin', 1),
+('Community Spotlight: Stories of Hope', 'community-spotlight', 'Meet the volunteers, donors, and community members who are making a difference every day.', '<h2>Volunteer Stories</h2><p>Our volunteers are the heart of our organization. They dedicate their time, energy, and compassion to make a real difference in people\'s lives.</p><h2>Donor Impact</h2><p>Every donor, whether giving ₹1 or ₹1000, plays a crucial role in our mission. Your support enables us to reach more communities and create lasting change.</p>', '/images/blog/blog-2.jpg', 'Community Spotlight', 'Admin', 2),
+('Impact Reports: Measuring Our Success', 'impact-reports', 'Stay updated with our quarterly impact reports, showcasing the measurable difference we\'re making.', '<h2>Quarterly Highlights</h2><p>This quarter, we\'ve reached over 10,000 families across 50 communities, providing essential support and resources.</p><h2>Looking Forward</h2><p>With your continued support, we aim to expand our reach and impact even more communities in the coming months.</p>', '/images/blog/blog-3.jpg', 'Impact Reports', 'Admin', 3);

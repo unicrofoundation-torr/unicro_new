@@ -72,6 +72,7 @@ app.use('/api/gallery', require('./routes/gallery'));
 app.use('/api/newsletter', require('./routes/newsletter'));
 app.use('/api/contact', require('./routes/contact'));
 app.use('/api/donations', require('./routes/donations'));
+app.use('/api/blogs', require('./routes/blogs'));
 
 // Serve static files from React app in production
 if (process.env.NODE_ENV === 'production') {

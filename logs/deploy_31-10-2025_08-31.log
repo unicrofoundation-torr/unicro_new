@@ -2,3 +2,18 @@
 mysqldump: [Warning] Using a password on the command line interface can be insecure.
 ✅ MySQL backup successful: /mnt/e/kanishk data/projects/UNICRO/backups/charity_website_31-10-2025_08-31.sql
 📦 Pushing latest code to GitHub...
+[main 774ecfd] Auto-deploy: Fri Oct 31 08:31:30 UTC 2025
+ 4 files changed, 427 insertions(+), 1 deletion(-)
+ create mode 100644 backups/charity_website_31-10-2025_08-31.sql
+ create mode 100644 logs/deploy_31-10-2025_08-31.log
+To https://github.com/unicrofoundation-torr/unicro_new.git
+   5c29c09..774ecfd  main -> main
+✅ GitHub push successful
+🌐 Uploading to cPanel using rsync...
+sending incremental file list
+rsync: [sender] change_dir "/mnt/e/kanishk data/projects/UNICRO/src" failed: No such file or directory (2)
+
+sent 20 bytes  received 12 bytes  5.82 bytes/sec
+total size is 0  speedup is 0.00
+rsync error: some files/attrs were not transferred (see previous errors) (code 23) at main.c(1338) [sender=3.2.7]
+❌ Deployment failed during upload.
