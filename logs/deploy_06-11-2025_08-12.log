@@ -2,3 +2,38 @@
 mysqldump: [Warning] Using a password on the command line interface can be insecure.
 ✅ MySQL backup successful: /mnt/e/kanishk data/projects/UNICRO/backups/charity_website_06-11-2025_08-12.sql
 📦 Pushing latest code to GitHub...
+[main b513ca0] Auto-deploy: Thu Nov  6 08:12:36 UTC 2025
+ 24 files changed, 6621 insertions(+), 7290 deletions(-)
+ delete mode 100644 backups/charity_website_06-11-2025_08-01.sql
+ delete mode 100644 backups/charity_website_06-11-2025_08-05.sql
+ rename backups/{charity_website_06-11-2025_08-00.sql => charity_website_06-11-2025_08-12.sql} (99%)
+ delete mode 100644 backups/charity_website_31-10-2025--_13-02.sql
+ delete mode 100644 backups/charity_website_31-10-2025--_13-04.sql
+ delete mode 100644 backups/charity_website_31-10-2025--_13-05.sql
+ delete mode 100644 backups/charity_website_31-10-2025_07-52.sql
+ delete mode 100644 backups/charity_website_31-10-2025_08-00.sql
+ delete mode 100644 backups/charity_website_31-10-2025_08-18.sql
+ delete mode 100644 backups/charity_website_31-10-2025_08-20.sql
+ delete mode 100644 backups/charity_website_31-10-2025_08-26.sql
+ delete mode 100644 backups/charity_website_31-10-2025_08-31.sql
+ delete mode 100644 backups/unicr_backup_--_12-19.sql
+ delete mode 100644 backups/unicr_backup_--_12-20.sql
+ delete mode 100644 backups/unicr_backup_--_12-22.sql
+ delete mode 100644 backups/unicr_backup_-0--02_12-25.sql
+ delete mode 100644 backups/unicr_backup_31-10-2025_12-29-19.11.sql
+ delete mode 100644 backups/unicr_backup_31-10-2025_12-30-06.73.sql
+ delete mode 100644 backups/unicr_backup_31-10-2025_12-31-49.90.sql
+ delete mode 100644 backups/unicr_backup_31-10-2025_12-32-35.23.sql
+ delete mode 100644 backups/unicr_backup_31-10-2025_12-33-10.77.sql
+ create mode 100644 logs/deploy_06-11-2025_08-12.log
+To https://github.com/unicrofoundation-torr/unicro_new.git
+   fe8bcf0..b513ca0  main -> main
+✅ GitHub push successful
+🌐 Uploading client (frontend) to cPanel...
+sending incremental file list
+rsync: [sender] change_dir "/mnt/e/kanishk data/projects/UNICRO/client/build" failed: No such file or directory (2)
+
+sent 20 bytes  received 12 bytes  7.11 bytes/sec
+total size is 0  speedup is 0.00
+rsync error: some files/attrs were not transferred (see previous errors) (code 23) at main.c(1338) [sender=3.2.7]
+❌ Deployment failed during upload.

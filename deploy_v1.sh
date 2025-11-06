@@ -59,7 +59,7 @@ rsync -avz \
   --exclude '*.sh' \
   --exclude '*.bat' \
   -e "ssh -i $PRIVATE_KEY -p $CPANEL_PORT" \
-  "$CLIENT_DIR/build/" $CPANEL_USER@$CPANEL_HOST:$REMOTE_DIR
+  "$CLIENT_DIR" $CPANEL_USER@$CPANEL_HOST:$REMOTE_DIR
 
 
 if [ $? -eq 0 ]; then
