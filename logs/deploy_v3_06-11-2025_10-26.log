@@ -1,2 +1,123 @@
 🔍 Checking for changes...
 📝 Found uncommitted changes, committing them...
+[main f0925f6] Auto-deploy: 2025-11-06_10-26-38
+ 4 files changed, 329 insertions(+)
+ create mode 100644 deploy_v3.bat
+ create mode 100644 deploy_v3.sh
+ create mode 100644 logs/deploy_v3_06-11-2025_10-26.log
+✅ Client source files changed - rebuild required
+✅ Server files changed
+💾 Taking MySQL Backup...
+mysqldump: [Warning] Using a password on the command line interface can be insecure.
+✅ MySQL backup successful: /mnt/e/kanishk data/projects/UNICRO/backups/charity_website_06-11-2025_10-26.sql
+📦 Pushing latest code to GitHub...
+🏗️ Building React project...
+
+> client@0.1.0 build
+> react-scripts build
+
+Creating an optimized production build...
+Compiled with warnings.
+
+[eslint] 
+src\components\Footer.js
+  Line 8:10:  'loading' is assigned a value but never used  no-unused-vars
+
+src\components\PageViewer.js
+  Line 13:6:  React Hook useEffect has a missing dependency: 'fetchPage'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\AdminPanel.js
+  Line 24:6:  React Hook useEffect has a missing dependency: 'checkAuth'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\BlogDetail.js
+  Line 14:6:  React Hook useEffect has a missing dependency: 'fetchBlog'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\Gallery.js
+  Line 18:6:  React Hook useEffect has a missing dependency: 'fetchGalleryImages'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\Shortcodes.js
+  Line 32:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 33:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 34:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 35:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 45:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 46:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 47:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 48:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 55:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 56:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 57:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 58:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 65:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 66:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 67:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 68:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+File sizes after gzip:
+
+  128.34 kB (+296 B)  build\static\js\main.3cb89751.js
+  9.07 kB             build\static\css\main.c138ef93.css
+  1.76 kB             build\static\js\453.eb570f4f.chunk.js
+
+The project was built assuming it is hosted at /.
+You can control this with the homepage field in your package.json.
+
+The build folder is ready to be deployed.
+You may serve it with a static server:
+
+  npm install -g serve
+  serve -s build
+
+Find out more about deployment here:
+
+  https://cra.link/deployment
+
+✅ React build successful
+🌐 Uploading changed files to cPanel...
+📤 Syncing build directory (rsync will only transfer changed files)...
+sending incremental file list
+deleting .well-known/pki-validation/CAAF4D4A61715CDA94575733C5D06AE0.txt
+deleting .well-known/pki-validation/
+deleting .well-known/
+deleting .htaccess.bk
+deleting .htaccess
+deleting .hcflag
+deleting .gitignore
+./
+asset-manifest.json
+            517 100%    0.00kB/s    0:00:00              517 100%    0.00kB/s    0:00:00 (xfr#1, to-chk=45/47)
+index.html
+            854 100%  139.00kB/s    0:00:00              854 100%  139.00kB/s    0:00:00 (xfr#2, to-chk=43/47)
+manifest.json
+            528 100%   57.29kB/s    0:00:00              528 100%   57.29kB/s    0:00:00 (xfr#3, to-chk=40/47)
+deleting static/js/main.c82c9475.js.LICENSE.txt
+deleting static/js/main.c82c9475.js
+images/
+images/gallery/
+images/our-work/
+static/
+static/css/
+static/js/
+static/js/main.3cb89751.js
+         32,768   6%   95.24kB/s    0:00:04          490,242 100%    1.29MB/s    0:00:00 (xfr#4, to-chk=29/47)
+static/js/main.3cb89751.js.LICENSE.txt
+          1,433 100%    3.72kB/s    0:00:00            1,433 100%    3.72kB/s    0:00:00 (xfr#5, to-chk=28/47)
+uploads/
+uploads/blogs/
+uploads/gallery/
+uploads/our-work/
+
+sent 132,254 bytes  received 422 bytes  17,690.13 bytes/sec
+total size is 15,952,134  speedup is 120.23
+✅ Deployment completed successfully!
+💾 Saved deployment commit: 2cfc3189ae607c149e4714e6117f301c28255df0
+=====================================================
+🎉 Smart Deployment Finished at Thu Nov  6 10:27:10 UTC 2025
+📊 Summary:
+   - Client changed: true
+   - Server changed: true
+   - Logs saved at: /mnt/e/kanishk data/projects/UNICRO/logs/deploy_v3_06-11-2025_10-26.log
+=====================================================
