@@ -49,7 +49,18 @@ fi
 
 # --- Rsync Upload (Frontend Only) ---
 echo "🌐 Uploading client (frontend) to cPanel..."
-rsync -avz -e "ssh -i $PRIVATE_KEY -p $CPANEL_PORT" "$CLIENT_DIR/" $CPANEL_USER@$CPANEL_HOST:$REMOTE_DIR
+rsync -avz \
+  --exclude '.git/' \
+  --exclude '.gitignore' \
+  --exclude 'node_modules/' \
+  --exclude 'logs/' \
+  --exclude 'backups/' \
+  --exclude '.env' \
+  --exclude '*.sh' \
+  --exclude '*.bat' \
+  -e "ssh -i $PRIVATE_KEY -p $CPANEL_PORT" \
+  "$CLIENT_DIR/build/" $CPANEL_USER@$CPANEL_HOST:$REMOTE_DIR
+
 
 if [ $? -eq 0 ]; then
   echo "✅ Frontend deployed successfully!"
