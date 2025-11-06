@@ -2,3 +2,24 @@
 mysqldump: [Warning] Using a password on the command line interface can be insecure.
 ✅ MySQL backup successful: /mnt/e/kanishk data/projects/UNICRO/backups/charity_website_06-11-2025_08-01.sql
 📦 Pushing latest code to GitHub...
+[main b9ec5af] Auto-deploy: Thu Nov  6 08:01:37 UTC 2025
+ 3 files changed, 466 insertions(+)
+ create mode 100644 backups/charity_website_06-11-2025_08-01.sql
+ create mode 100644 logs/deploy_06-11-2025_08-01.log
+To https://github.com/unicrofoundation-torr/unicro_new.git
+   47ddbd8..b9ec5af  main -> main
+✅ GitHub push successful
+🌐 Uploading client (frontend) to cPanel...
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@         WARNING: UNPROTECTED PRIVATE KEY FILE!          @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+Permissions 0777 for '/mnt/c/Users/KanishkRajSinghDodiy/Downloads/key_private' are too open.
+It is required that your private key files are NOT accessible by others.
+This private key will be ignored.
+Load key "/mnt/c/Users/KanishkRajSinghDodiy/Downloads/key_private": bad permissions
+Permission denied, please try again.
+Permission denied, please try again.
+theomkiq@server357.web-hosting.com: Permission denied (publickey,gssapi-keyex,gssapi-with-mic,password).
+rsync: connection unexpectedly closed (0 bytes received so far) [sender]
+rsync error: unexplained error (code 255) at io.c(232) [sender=3.2.7]
+❌ Deployment failed during upload.
