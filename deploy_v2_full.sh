@@ -13,7 +13,7 @@ LOCAL_DB_NAME="charity_website"
 # Remote Database (cPanel - UPDATE THESE!)
 REMOTE_DB_USER="theomkiq_charity"  # 👈 Update with your cPanel database user
 REMOTE_DB_PASS="Unicro@001"  # 👈 Update with your cPanel database password
-REMOTE_DB_NAME="theomkiq_charity_website"  # 👈 Update with your cPanel database name (usually username_dbname)
+REMOTE_DB_NAME="theomkiq_charity"  # 👈 Update with your cPanel database name (usually username_dbname)
 REMOTE_DB_HOST="localhost"  # Usually localhost on cPanel
 
 PROJECT_ROOT="/mnt/e/kanishk data/projects/UNICRO"
