@@ -2,3 +2,331 @@
 mysqldump: [Warning] Using a password on the command line interface can be insecure.
 ✅ MySQL backup successful: /mnt/e/kanishk data/projects/UNICRO/backups/charity_website_07-11-2025_10-32.sql
 📦 Pushing latest code to GitHub...
+[main 8d2e756] Auto-deploy: Fri Nov  7 10:33:01 UTC 2025
+ 18 files changed, 1949 insertions(+), 592 deletions(-)
+ create mode 100644 DATABASE_ACCESS.md
+ create mode 100644 backups/charity_website_07-11-2025_10-26.sql
+ create mode 100644 backups/charity_website_07-11-2025_10-32.sql
+ create mode 100644 deploy_v2_full.sh
+ create mode 100644 logs/deploy_07-11-2025_10-26.log
+ create mode 100644 logs/deploy_07-11-2025_10-32.log
+To https://github.com/unicrofoundation-torr/unicro_new.git
+   be9bd02..8d2e756  main -> main
+🏗️ Building React project...
+
+up to date, audited 1351 packages in 3s
+
+272 packages are looking for funding
+  run `npm fund` for details
+
+9 vulnerabilities (3 moderate, 6 high)
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+> client@0.1.0 build
+> react-scripts build
+
+Creating an optimized production build...
+Compiled with warnings.
+
+[eslint] 
+src\components\Footer.js
+  Line 8:10:  'loading' is assigned a value but never used  no-unused-vars
+
+src\components\PageViewer.js
+  Line 13:6:  React Hook useEffect has a missing dependency: 'fetchPage'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\AdminPanel.js
+  Line 24:6:  React Hook useEffect has a missing dependency: 'checkAuth'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\BlogDetail.js
+  Line 14:6:  React Hook useEffect has a missing dependency: 'fetchBlog'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\Gallery.js
+  Line 18:6:  React Hook useEffect has a missing dependency: 'fetchGalleryImages'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\Shortcodes.js
+  Line 32:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 33:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 34:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 35:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 45:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 46:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 47:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 48:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 55:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 56:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 57:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 58:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 65:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 66:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 67:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 68:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+File sizes after gzip:
+
+  128.33 kB (-5 B)  build\static\js\main.5276394a.js
+  9.07 kB           build\static\css\main.c138ef93.css
+  1.76 kB           build\static\js\453.eb570f4f.chunk.js
+
+The project was built assuming it is hosted at /.
+You can control this with the homepage field in your package.json.
+
+The build folder is ready to be deployed.
+You may serve it with a static server:
+
+  npm install -g serve
+  serve -s build
+
+Find out more about deployment here:
+
+  https://cra.link/deployment
+
+✅ React build successful
+🌐 Uploading frontend build to cPanel...
+sending incremental file list
+./
+.htaccess
+asset-manifest.json
+favicon.ico
+index.html
+logo192.png
+logo512.png
+manifest.json
+robots.txt
+images/
+images/gallery/
+images/our-work/
+static/
+static/css/
+static/css/main.c138ef93.css
+static/css/main.c138ef93.css.map
+static/js/
+static/js/453.eb570f4f.chunk.js
+static/js/453.eb570f4f.chunk.js.map
+static/js/main.5276394a.js
+static/js/main.5276394a.js.LICENSE.txt
+static/js/main.5276394a.js.map
+uploads/
+uploads/logo-1760602707648-414861542.png
+uploads/slider-1760607543331-848370662.jpeg
+uploads/slider-1760607676270-46676797.jpg
+uploads/blogs/
+uploads/blogs/image-1762415018037-310476965.png
+uploads/gallery/
+uploads/gallery/file-1761553878966-389787429.mp4
+uploads/gallery/file-1761553994467-847974385.mp4
+uploads/gallery/file-1761554443908-558969165.mp4
+uploads/gallery/file-1761808433805-270845969.jpg
+uploads/gallery/image-1761545067430-3733912.jpeg
+uploads/gallery/image-1761545603443-331250820.jpeg
+uploads/gallery/image-1761545603464-728721846.jpeg
+uploads/gallery/image-1761545603468-563504159.jpeg
+uploads/gallery/image-1761545603477-528502307.jpeg
+uploads/gallery/image-1761545603484-474807791.jpeg
+uploads/gallery/image-1761545646164-119015798.jpeg
+uploads/gallery/image-1761545646193-167496359.jpeg
+uploads/gallery/image-1761545646206-885731558.jpeg
+uploads/gallery/image-1761545646221-859674821.jpeg
+uploads/gallery/image-1761545646233-280772266.jpeg
+uploads/gallery/image-1761549838247-895066506.jpeg
+uploads/gallery/image-1761549838260-292817717.jpeg
+uploads/gallery/image-1761549838267-777150561.jpeg
+uploads/gallery/image-1761549838283-97900579.jpeg
+uploads/our-work/
+uploads/our-work/after_image-1761553397887-60432303.jpeg
+uploads/our-work/before_image-1761553397884-613423149.jpeg
+
+sent 15,946,636 bytes  received 853 bytes  708,777.29 bytes/sec
+total size is 17,987,180  speedup is 1.13
+✅ Frontend deployment successful
+🔧 Uploading backend to cPanel...
+⚠️  NOTE: This assumes your cPanel supports Node.js
+⚠️  If not, you'll need to deploy backend separately (VPS, Heroku, etc.)
+sending incremental file list
+./
+.gitignore
+1
+DATABASE_ACCESS.md
+DEPLOY.md
+README.md
+backup-db.bat
+deploy-live.bat
+deploy-live.sh
+deploy.bat
+deploy.sh
+deploy_v1.sh
+deploy_v2.sh
+deploy_v2_full.sh
+deploy_v3.bat
+deploy_v3.sh
+package-lock.json
+package.json
+server-demo.js
+server.js
+setup.js
+config/
+config/database.js
+database/
+database/schema.sql
+git-filter-repo/
+git-filter-repo/.gitattributes
+git-filter-repo/.gitignore
+git-filter-repo/COPYING
+git-filter-repo/COPYING.gpl
+git-filter-repo/COPYING.mit
+git-filter-repo/INSTALL.md
+git-filter-repo/Makefile
+git-filter-repo/README.md
+git-filter-repo/git-filter-repo
+git-filter-repo/git_filter_repo.py
+git-filter-repo/pyproject.toml
+git-filter-repo/.github/
+git-filter-repo/.github/dependabot.yml
+git-filter-repo/.github/workflows/
+git-filter-repo/.github/workflows/test.yml
+git-filter-repo/Documentation/
+git-filter-repo/Documentation/Contributing.md
+git-filter-repo/Documentation/FAQ.md
+git-filter-repo/Documentation/converting-from-bfg-repo-cleaner.md
+git-filter-repo/Documentation/converting-from-filter-branch.md
+git-filter-repo/Documentation/examples-from-user-filed-issues.md
+git-filter-repo/Documentation/git-filter-repo.txt
+git-filter-repo/contrib/
+git-filter-repo/contrib/filter-repo-demos/
+git-filter-repo/contrib/filter-repo-demos/README.md
+git-filter-repo/contrib/filter-repo-demos/barebones-example
+git-filter-repo/contrib/filter-repo-demos/bfg-ish
+git-filter-repo/contrib/filter-repo-demos/clean-ignore
+git-filter-repo/contrib/filter-repo-demos/convert-svnexternals
+git-filter-repo/contrib/filter-repo-demos/filter-branch-ish
+git-filter-repo/contrib/filter-repo-demos/filter-lamely
+git-filter-repo/contrib/filter-repo-demos/insert-beginning
+git-filter-repo/contrib/filter-repo-demos/lint-history
+git-filter-repo/contrib/filter-repo-demos/signed-off-by
+git-filter-repo/t/
+git-filter-repo/t/run_coverage
+git-filter-repo/t/run_tests
+git-filter-repo/t/t9390-filter-repo-basics.sh
+git-filter-repo/t/t9391-filter-repo-lib-usage.sh
+git-filter-repo/t/t9392-filter-repo-python-callback.sh
+git-filter-repo/t/t9393-filter-repo-rerun.sh
+git-filter-repo/t/t9394-filter-repo-sanity-checks-and-bigger-repo-setup.sh
+git-filter-repo/t/test-lib-functions.sh
+git-filter-repo/t/test-lib.sh
+git-filter-repo/t/t9390/
+git-filter-repo/t/t9390/basic
+git-filter-repo/t/t9390/basic-filename
+git-filter-repo/t/t9390/basic-mailmap
+git-filter-repo/t/t9390/basic-message
+git-filter-repo/t/t9390/basic-numbers
+git-filter-repo/t/t9390/basic-replace
+git-filter-repo/t/t9390/basic-ten
+git-filter-repo/t/t9390/basic-twenty
+git-filter-repo/t/t9390/degenerate
+git-filter-repo/t/t9390/degenerate-evil-merge
+git-filter-repo/t/t9390/degenerate-globme
+git-filter-repo/t/t9390/degenerate-keepme
+git-filter-repo/t/t9390/degenerate-keepme-noff
+git-filter-repo/t/t9390/degenerate-moduleA
+git-filter-repo/t/t9390/empty
+git-filter-repo/t/t9390/empty-keepme
+git-filter-repo/t/t9390/less-empty-keepme
+git-filter-repo/t/t9390/more-empty-keepme
+git-filter-repo/t/t9390/sample-mailmap
+git-filter-repo/t/t9390/sample-message
+git-filter-repo/t/t9390/sample-replace
+git-filter-repo/t/t9390/unusual
+git-filter-repo/t/t9390/unusual-filtered
+git-filter-repo/t/t9390/unusual-mailmap
+git-filter-repo/t/t9391/
+git-filter-repo/t/t9391/commit_info.py
+git-filter-repo/t/t9391/create_fast_export_output.py
+git-filter-repo/t/t9391/emoji-repo
+git-filter-repo/t/t9391/erroneous.py
+git-filter-repo/t/t9391/file_filter.py
+git-filter-repo/t/t9391/print_progress.py
+git-filter-repo/t/t9391/rename-master-to-develop.py
+git-filter-repo/t/t9391/splice_repos.py
+git-filter-repo/t/t9391/strip-cvs-keywords.py
+git-filter-repo/t/t9391/unusual.py
+git-filter-repo/t/t9393/
+git-filter-repo/t/t9393/lfs
+git-filter-repo/t/t9393/simple
+git-filter-repo/t/t9394/
+git-filter-repo/t/t9394/date-order
+routes/
+routes/admin.js
+routes/blogs.js
+routes/contact.js
+routes/demo.js
+routes/donations.js
+routes/footer.js
+routes/gallery.js
+routes/navigation.js
+routes/newsletter.js
+routes/ourWork.js
+routes/pages.js
+routes/siteSettings.js
+routes/slider.js
+
+sent 297,650 bytes  received 2,193 bytes  46,129.69 bytes/sec
+total size is 969,030  speedup is 3.23
+✅ Backend files uploaded successfully
+📦 Installing backend dependencies on server...
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+Last failed login: Thu Nov  6 03:02:14 EST 2025 from 122.170.6.222 on ssh:notty
+There were 5 failed login attempts since the last successful login.
+⚠️  npm not found. Node.js may not be installed on cPanel.
+⚠️  You may need to enable Node.js in cPanel or use a different hosting solution.
+🗄️  Deploying SQL schema to remote database...
+⚠️  Make sure you've updated REMOTE_DB_* variables in the script!
+📤 Uploading schema.sql to server...
+✅ Schema file uploaded
+📥 Importing schema to remote database...
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+Last failed login: Thu Nov  6 03:02:14 EST 2025 from 122.170.6.222 on ssh:notty
+There were 5 failed login attempts since the last successful login.
+mysql: Deprecated program name. It will be removed in a future release, use '/usr/bin/mariadb' instead
+❌ SQL schema import failed. Check database credentials.
+⚠️  You may need to import manually via phpMyAdmin
+ERROR 1044 (42000): Access denied for user 'theomkiq_charity'@'localhost' to database 'theomkiq_charity_website'
+
+=====================================================
+📋 DEPLOYMENT SUMMARY
+=====================================================
+✅ Frontend: Deployed to ~/public_html
+⚠️  Backend: Uploaded to ~/nodejs
+⚠️  Database: Schema deployment attempted
+
+🔧 NEXT STEPS:
+1. ⚠️  IMPORTANT: Update database credentials in script:
+   - REMOTE_DB_USER (usually: cpanel_username_dbuser)
+   - REMOTE_DB_PASS (your cPanel database password)
+   - REMOTE_DB_NAME (usually: cpanel_username_dbname)
+
+2. If SQL import failed, import manually:
+   - Login to cPanel → phpMyAdmin
+   - Select database: theomkiq_charity_website
+   - Click 'Import' → Upload database/schema.sql
+
+3. Check if your cPanel supports Node.js applications
+4. If yes, configure Node.js app in cPanel to run server.js
+5. If no, deploy backend to:
+   - VPS (DigitalOcean, AWS EC2, etc.)
+   - Heroku
+   - Railway
+   - Render
+   - Or any Node.js hosting service
+
+6. Update frontend API URL to point to your backend server
+7. Configure database connection in backend .env file
+
+📝 Logs saved at: /mnt/e/kanishk data/projects/UNICRO/logs/deploy_07-11-2025_10-32.log
+=====================================================
