@@ -1,0 +1,6 @@
+💾 Taking MySQL Backup...
+mysqldump: [Warning] Using a password on the command line interface can be insecure.
+✅ MySQL backup successful: /mnt/e/kanishk data/projects/UNICRO/backups/charity_website_07-11-2025_10-26.sql
+📦 Pushing latest code to GitHub...
+deploy_v2_full.sh: line 44: syntax error near unexpected token `('
+deploy_v2_full.sh: line 44: `SQL Backup (Local)..."'
