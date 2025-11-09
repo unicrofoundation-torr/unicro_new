@@ -111,34 +111,19 @@ ssh -i "$PRIVATE_KEY" -p $CPANEL_PORT $CPANEL_USER@$CPANEL_HOST "mkdir -p $BACKE
 # First, clean the backend directory (optional - comment out if you want to keep existing files)
 # ssh -i "$PRIVATE_KEY" -p $CPANEL_PORT $CPANEL_USER@$CPANEL_HOST "rm -rf $BACKEND_DIR/*"
 
-# Upload backend files - exclude what we don't need
-# Using simpler approach: exclude unwanted, include specific files/folders
+# Upload backend files - use explicit file/folder copying
+echo "📤 Uploading backend files..."
 rsync -avz \
-  --exclude='client/' \
-  --exclude='node_modules/' \
-  --exclude='.git/' \
-  --exclude='backups/' \
-  --exclude='logs/' \
-  --exclude='*.log' \
-  --exclude='.env' \
-  --exclude='*.md' \
-  --exclude='*.sh' \
-  --exclude='*.bat' \
-  --exclude='git-filter-repo/' \
-  --include='server.js' \
-  --include='server-demo.js' \
-  --include='setup.js' \
-  --include='package.json' \
-  --include='package-lock.json' \
-  --include='config/' \
-  --include='config/**' \
-  --include='routes/' \
-  --include='routes/**' \
-  --include='database/' \
-  --include='database/schema.sql' \
-  --exclude='*' \
   -e "ssh -i $PRIVATE_KEY -p $CPANEL_PORT" \
-  "$PROJECT_ROOT/" $CPANEL_USER@$CPANEL_HOST:$BACKEND_DIR
+  "$PROJECT_ROOT/server.js" \
+  "$PROJECT_ROOT/server-demo.js" \
+  "$PROJECT_ROOT/setup.js" \
+  "$PROJECT_ROOT/package.json" \
+  "$PROJECT_ROOT/package-lock.json" \
+  "$PROJECT_ROOT/config/" \
+  "$PROJECT_ROOT/routes/" \
+  "$PROJECT_ROOT/database/schema.sql" \
+  $CPANEL_USER@$CPANEL_HOST:$BACKEND_DIR/
 
 if [ $? -ne 0 ]; then
   echo "⚠️  Backend upload failed. You may need to deploy backend separately."
