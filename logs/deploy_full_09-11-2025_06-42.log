@@ -1,3 +1,141 @@
 💾 Taking MySQL Backup (Local)...
 ✅ MySQL backup successful: /mnt/e/kanishk data/projects/UNICRO/backups/charity_website_09-11-2025_06-42.sql
 📦 Pushing latest code to GitHub...
+[main f01ee27] Auto-deploy: 2025-11-09_06-42-33
+ 3 files changed, 592 insertions(+)
+ create mode 100644 backups/charity_website_09-11-2025_06-42.sql
+ create mode 100644 logs/deploy_full_09-11-2025_06-42.log
+📦 Installing client dependencies...
+   Dependencies already installed
+🏗️ Building React frontend...
+
+> client@0.1.0 build
+> react-scripts build
+
+Creating an optimized production build...
+Compiled with warnings.
+
+[eslint] 
+src\pages\Shortcodes.js
+  Line 32:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 33:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 34:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 35:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 45:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 46:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 47:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 48:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 55:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 56:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 57:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 58:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 65:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 66:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 67:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 68:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+File sizes after gzip:
+
+  119.04 kB (-3 B)  build\static\js\main.ee0cea39.js
+  8.63 kB           build\static\css\main.c80ca0d1.css
+  1.76 kB           build\static\js\453.eb570f4f.chunk.js
+
+The project was built assuming it is hosted at /.
+You can control this with the homepage field in your package.json.
+
+The build folder is ready to be deployed.
+You may serve it with a static server:
+
+  npm install -g serve
+  serve -s build
+
+Find out more about deployment here:
+
+  https://cra.link/deployment
+
+✅ React build successful
+📤 Deploying frontend to cPanel...
+sending incremental file list
+./
+asset-manifest.json
+            517 100%    0.00kB/s    0:00:00              517 100%    0.00kB/s    0:00:00 (xfr#1, to-chk=45/48)
+index.html
+            854 100%   14.14kB/s    0:00:00              854 100%   14.14kB/s    0:00:00 (xfr#2, to-chk=43/48)
+deleting static/js/main.17cf510a.js.LICENSE.txt
+deleting static/js/main.17cf510a.js
+images/
+images/gallery/
+images/our-work/
+static/
+static/css/
+static/css/main.c80ca0d1.css
+            700   1%    5.74kB/s    0:00:08           47,962 100%  380.80kB/s    0:00:00 (xfr#3, to-chk=31/48)
+static/js/
+static/js/453.eb570f4f.chunk.js
+            700  15%    4.56kB/s    0:00:00            4,465 100%   28.88kB/s    0:00:00 (xfr#4, to-chk=30/48)
+static/js/main.ee0cea39.js
+         32,768   7%   81.84kB/s    0:00:05          449,684 100%    1.04MB/s    0:00:00 (xfr#5, to-chk=29/48)
+static/js/main.ee0cea39.js.LICENSE.txt
+          1,433 100%    3.32kB/s    0:00:00            1,433 100%    3.32kB/s    0:00:00 (xfr#6, to-chk=28/48)
+uploads/
+uploads/blogs/
+uploads/gallery/
+uploads/our-work/
+
+sent 122,108 bytes  received 731 bytes  18,898.31 bytes/sec
+total size is 15,908,854  speedup is 129.51
+✅ Frontend deployed successfully
+📤 Deploying backend to cPanel...
+sending incremental file list
+
+sent 647 bytes  received 15 bytes  147.11 bytes/sec
+total size is 153,740  speedup is 232.24
+✅ Backend files deployed successfully
+📦 Installing backend dependencies on server...
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+   Checking for npm...
+   ⚠️ npm not found - please install dependencies manually in cPanel
+   Go to: cPanel → Setup Node.js App → Your App → NPM Install
+✅ Backend dependencies installation completed
+
+=====================================================
+🎉 Full Stack Deployment Complete!
+=====================================================
+
+📊 Deployment Summary:
+   ✅ Frontend deployed to: ~/public_html
+   ✅ Backend deployed to: ~/nodejs
+   ✅ Logs saved at: /mnt/e/kanishk data/projects/UNICRO/logs/deploy_full_09-11-2025_06-42.log
+
+📋 Next Steps:
+
+1. ⚙️  Configure Environment Variables in cPanel:
+   - Go to: cPanel → Setup Node.js App → Your App
+   - Add these environment variables:
+     NODE_ENV=production
+     PORT=5000
+     DB_HOST=localhost
+     DB_USER=theomkiq_charity
+     DB_PASSWORD=Unicro@001
+     DB_NAME=theomkiq_charity_website
+     JWT_SECRET=your-secret-key-here
+
+2. 🔄 Restart Node.js App in cPanel:
+   - Go to: cPanel → Setup Node.js App
+   - Click: 'Restart App' button
+
+3. ✅ Test API Endpoints:
+   - https://theonerupeerevolution.org/api/settings
+   - https://theonerupeerevolution.org/api/slider
+   - https://theonerupeerevolution.org/api/gallery
+
+4. 🧪 Verify Frontend:
+   - https://theonerupeerevolution.org
+   - Check browser console (F12) for errors
+
+=====================================================
+🚀 Deployment finished at Sun Nov  9 06:43:07 UTC 2025
+=====================================================
