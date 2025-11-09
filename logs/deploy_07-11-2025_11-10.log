@@ -2,3 +2,210 @@
 mysqldump: [Warning] Using a password on the command line interface can be insecure.
 ✅ MySQL backup successful: /mnt/e/kanishk data/projects/UNICRO/backups/charity_website_07-11-2025_11-10.sql
 📦 Pushing latest code to GitHub...
+[main 40f6d9b] Auto-deploy: Fri Nov  7 11:10:43 UTC 2025
+ 7 files changed, 1372 insertions(+), 1 deletion(-)
+ create mode 100644 BACKEND_DEPLOYMENT.md
+ create mode 100644 BACKEND_DEPLOYMENT_CPANEL.md
+ create mode 100644 FIX_DATABASE.md
+ create mode 100644 backups/charity_website_07-11-2025_11-10.sql
+ create mode 100644 logs/deploy_07-11-2025_11-10.log
+To https://github.com/unicrofoundation-torr/unicro_new.git
+   3a03563..40f6d9b  main -> main
+🏗️ Building React project...
+
+up to date, audited 1351 packages in 4s
+
+272 packages are looking for funding
+  run `npm fund` for details
+
+9 vulnerabilities (3 moderate, 6 high)
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+> client@0.1.0 build
+> react-scripts build
+
+Creating an optimized production build...
+Compiled with warnings.
+
+[eslint] 
+src\components\PageViewer.js
+  Line 13:6:  React Hook useEffect has a missing dependency: 'fetchPage'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\AdminPanel.js
+  Line 24:6:  React Hook useEffect has a missing dependency: 'checkAuth'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\BlogDetail.js
+  Line 14:6:  React Hook useEffect has a missing dependency: 'fetchBlog'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\Gallery.js
+  Line 18:6:  React Hook useEffect has a missing dependency: 'fetchGalleryImages'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+src\pages\Shortcodes.js
+  Line 32:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 33:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 34:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 35:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 45:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 46:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 47:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 48:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 55:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 56:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 57:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 58:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 65:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 66:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 67:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+  Line 68:19:  The href attribute requires a valid value to be accessible. Provide a valid, navigable address as the href value. If you cannot provide a valid href, but still need the element to resemble a link, use a button and change it with appropriate styles. Learn more: https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/blob/HEAD/docs/rules/anchor-is-valid.md  jsx-a11y/anchor-is-valid
+
+Search for the keywords to learn more about each warning.
+To ignore, add // eslint-disable-next-line to the line before.
+
+File sizes after gzip:
+
+  128.38 kB (-10 B)  build\static\js\main.3713b638.js
+  9.07 kB            build\static\css\main.c138ef93.css
+  1.76 kB            build\static\js\453.eb570f4f.chunk.js
+
+The project was built assuming it is hosted at /.
+You can control this with the homepage field in your package.json.
+
+The build folder is ready to be deployed.
+You may serve it with a static server:
+
+  npm install -g serve
+  serve -s build
+
+Find out more about deployment here:
+
+  https://cra.link/deployment
+
+✅ React build successful
+🌐 Uploading frontend build to cPanel...
+sending incremental file list
+./
+asset-manifest.json
+favicon.ico
+index.html
+logo192.png
+logo512.png
+manifest.json
+robots.txt
+images/
+images/gallery/
+images/our-work/
+static/
+static/css/
+static/css/main.c138ef93.css
+static/css/main.c138ef93.css.map
+static/js/
+static/js/453.eb570f4f.chunk.js
+static/js/453.eb570f4f.chunk.js.map
+static/js/main.3713b638.js
+static/js/main.3713b638.js.LICENSE.txt
+static/js/main.3713b638.js.map
+uploads/
+uploads/logo-1760602707648-414861542.png
+uploads/slider-1760607543331-848370662.jpeg
+uploads/slider-1760607676270-46676797.jpg
+uploads/blogs/
+uploads/blogs/image-1762415018037-310476965.png
+uploads/gallery/
+uploads/gallery/file-1761553878966-389787429.mp4
+uploads/gallery/file-1761553994467-847974385.mp4
+uploads/gallery/file-1761554443908-558969165.mp4
+uploads/gallery/file-1761808433805-270845969.jpg
+uploads/gallery/image-1761545067430-3733912.jpeg
+uploads/gallery/image-1761545603443-331250820.jpeg
+uploads/gallery/image-1761545603464-728721846.jpeg
+uploads/gallery/image-1761545603468-563504159.jpeg
+uploads/gallery/image-1761545603477-528502307.jpeg
+uploads/gallery/image-1761545603484-474807791.jpeg
+uploads/gallery/image-1761545646164-119015798.jpeg
+uploads/gallery/image-1761545646193-167496359.jpeg
+uploads/gallery/image-1761545646206-885731558.jpeg
+uploads/gallery/image-1761545646221-859674821.jpeg
+uploads/gallery/image-1761545646233-280772266.jpeg
+uploads/gallery/image-1761549838247-895066506.jpeg
+uploads/gallery/image-1761549838260-292817717.jpeg
+uploads/gallery/image-1761549838267-777150561.jpeg
+uploads/gallery/image-1761549838283-97900579.jpeg
+uploads/our-work/
+uploads/our-work/after_image-1761553397887-60432303.jpeg
+uploads/our-work/before_image-1761553397884-613423149.jpeg
+
+sent 15,946,842 bytes  received 828 bytes  1,876,196.47 bytes/sec
+total size is 17,988,087  speedup is 1.13
+✅ Frontend deployment successful
+🔧 Uploading backend to cPanel...
+⚠️  NOTE: This assumes your cPanel supports Node.js
+⚠️  If not, you'll need to deploy backend separately (VPS, Heroku, etc.)
+sending incremental file list
+./
+BACKEND_DEPLOYMENT.md
+BACKEND_DEPLOYMENT_CPANEL.md
+FIX_DATABASE.md
+deploy_v2_full.sh
+
+sent 11,082 bytes  received 175 bytes  1,731.85 bytes/sec
+total size is 988,969  speedup is 87.85
+✅ Backend files uploaded successfully
+📦 Installing backend dependencies on server...
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+Last failed login: Thu Nov  6 03:02:14 EST 2025 from 122.170.6.222 on ssh:notty
+There were 5 failed login attempts since the last successful login.
+⚠️  npm not found. Node.js may not be installed on cPanel.
+⚠️  You may need to enable Node.js in cPanel or use a different hosting solution.
+🗄️  Deploying SQL schema to remote database...
+⚠️  Make sure you've updated REMOTE_DB_* variables in the script!
+📤 Uploading schema.sql to server...
+✅ Schema file uploaded
+📥 Importing schema to remote database...
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+Last failed login: Thu Nov  6 03:02:14 EST 2025 from 122.170.6.222 on ssh:notty
+There were 5 failed login attempts since the last successful login.
+mysql: Deprecated program name. It will be removed in a future release, use '/usr/bin/mariadb' instead
+--------------
+CREATE DATABASE IF NOT EXISTS charity_website
+--------------
+
+ERROR 1044 (42000) at line 2: Access denied for user 'theomkiq_charity'@'localhost' to database 'charity_website'
+❌ SQL schema import failed. Check database credentials.
+⚠️  You may need to import manually via phpMyAdmin
+
+=====================================================
+📋 DEPLOYMENT SUMMARY
+=====================================================
+✅ Frontend: Deployed to ~/public_html
+⚠️  Backend: Uploaded to ~/nodejs
+⚠️  Database: Schema deployment attempted
+
+🔧 NEXT STEPS:
+1. ⚠️  IMPORTANT: Update database credentials in script:
+   - REMOTE_DB_USER (usually: cpanel_username_dbuser)
+   - REMOTE_DB_PASS (your cPanel database password)
+   - REMOTE_DB_NAME (usually: cpanel_username_dbname)
+
+2. If SQL import failed, import manually:
+   - Login to cPanel → phpMyAdmin
+   - Select database: theomkiq_charity
+   - Click 'Import' → Upload database/schema.sql
+
+3. Check if your cPanel supports Node.js applications
+4. If yes, configure Node.js app in cPanel to run server.js
+5. If no, deploy backend to:
+   - VPS (DigitalOcean, AWS EC2, etc.)
+   - Heroku
+   - Railway
+   - Render
+   - Or any Node.js hosting service
+
+6. Update frontend API URL to point to your backend server
+7. Configure database connection in backend .env file
+
+📝 Logs saved at: /mnt/e/kanishk data/projects/UNICRO/logs/deploy_07-11-2025_11-10.log
+=====================================================

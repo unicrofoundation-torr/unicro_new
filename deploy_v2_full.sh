@@ -55,6 +55,20 @@ git push origin main || echo "⚠️ Git push failed — continuing deployment"
 # --- Step 3: Build React Frontend ---
 echo "🏗️ Building React project..."
 cd "$CLIENT_DIR"
+
+# Set environment variables for production build
+export REACT_APP_TINYMCE_API_KEY="umr1eq61a2537s4649w0i6dru4y7cypj6clshpyrkmsti4k7"
+export NODE_ENV=production
+export GENERATE_SOURCEMAP=false
+
+# If .env file exists, source it (optional)
+if [ -f ".env" ]; then
+  echo "📝 Loading environment variables from .env file..."
+  set -a
+  source .env
+  set +a
+fi
+
 npm install --legacy-peer-deps
 npm run build
 if [ $? -ne 0 ]; then
@@ -94,20 +108,35 @@ echo "⚠️  If not, you'll need to deploy backend separately (VPS, Heroku, etc
 ssh -i "$PRIVATE_KEY" -p $CPANEL_PORT $CPANEL_USER@$CPANEL_HOST "mkdir -p $BACKEND_DIR"
 
 # Upload backend files (excluding client folder, node_modules, etc.)
+# First, clean the backend directory (optional - comment out if you want to keep existing files)
+# ssh -i "$PRIVATE_KEY" -p $CPANEL_PORT $CPANEL_USER@$CPANEL_HOST "rm -rf $BACKEND_DIR/*"
+
+# Upload backend files - exclude what we don't need
+# Using simpler approach: exclude unwanted, include specific files/folders
 rsync -avz \
-  --exclude 'client/' \
-  --exclude 'node_modules/' \
-  --exclude '.git/' \
-  --exclude 'backups/' \
-  --exclude 'logs/' \
-  --exclude '*.log' \
-  --exclude '.env' \
-  --include 'server.js' \
-  --include 'package.json' \
-  --include 'package-lock.json' \
-  --include 'config/' \
-  --include 'routes/' \
-  --include 'database/' \
+  --exclude='client/' \
+  --exclude='node_modules/' \
+  --exclude='.git/' \
+  --exclude='backups/' \
+  --exclude='logs/' \
+  --exclude='*.log' \
+  --exclude='.env' \
+  --exclude='*.md' \
+  --exclude='*.sh' \
+  --exclude='*.bat' \
+  --exclude='git-filter-repo/' \
+  --include='server.js' \
+  --include='server-demo.js' \
+  --include='setup.js' \
+  --include='package.json' \
+  --include='package-lock.json' \
+  --include='config/' \
+  --include='config/**' \
+  --include='routes/' \
+  --include='routes/**' \
+  --include='database/' \
+  --include='database/schema.sql' \
+  --exclude='*' \
   -e "ssh -i $PRIVATE_KEY -p $CPANEL_PORT" \
   "$PROJECT_ROOT/" $CPANEL_USER@$CPANEL_HOST:$BACKEND_DIR
 
@@ -119,89 +148,94 @@ else
   
   # Install backend dependencies on server
   echo "📦 Installing backend dependencies on server..."
+  echo "⚠️  Note: npm install will be done via cPanel Node.js app settings"
+  echo "⚠️  Or you can install manually via cPanel Terminal:"
+  echo "    cd ~/nodejs && npm install --production"
+  
+  # Try to find npm in common cPanel locations
   ssh -i "$PRIVATE_KEY" -p $CPANEL_PORT $CPANEL_USER@$CPANEL_HOST << 'ENDSSH'
     cd ~/nodejs
+    
+    # Try to find npm in common cPanel Node.js paths
+    NPM_PATH=""
     if command -v npm &> /dev/null; then
-      npm install --production
-      echo "✅ Backend dependencies installed"
-    else
-      echo "⚠️  npm not found. Node.js may not be installed on cPanel."
-      echo "⚠️  You may need to enable Node.js in cPanel or use a different hosting solution."
-    fi
-ENDSSH
-fi
-
-# --- Step 6: Deploy SQL Schema to Remote Database ---
-echo "🗄️  Deploying SQL schema to remote database..."
-echo "⚠️  Make sure you've updated REMOTE_DB_* variables in the script!"
-
-# Upload schema.sql to server
-echo "📤 Uploading schema.sql to server..."
-scp -i "$PRIVATE_KEY" -P $CPANEL_PORT "$PROJECT_ROOT/database/schema.sql" $CPANEL_USER@$CPANEL_HOST:~/schema.sql
-
-if [ $? -eq 0 ]; then
-  echo "✅ Schema file uploaded"
-  
-  # Import schema to remote database
-  echo "📥 Importing schema to remote database..."
-  ssh -i "$PRIVATE_KEY" -p $CPANEL_PORT $CPANEL_USER@$CPANEL_HOST << ENDSSH
-    # Check if mysql command is available
-    if command -v mysql &> /dev/null; then
-      # Import schema (this will create tables if they don't exist)
-      mysql -u${REMOTE_DB_USER} -p${REMOTE_DB_PASS} -h${REMOTE_DB_HOST} ${REMOTE_DB_NAME} < ~/schema.sql
-      if [ \$? -eq 0 ]; then
-        echo "✅ SQL schema imported successfully"
-      else
-        echo "❌ SQL schema import failed. Check database credentials."
-        echo "⚠️  You may need to import manually via phpMyAdmin"
-      fi
-    else
-      echo "⚠️  mysql command not found. You may need to import manually via phpMyAdmin"
-      echo "📋 To import manually:"
-      echo "   1. Login to cPanel → phpMyAdmin"
-      echo "   2. Select database: ${REMOTE_DB_NAME}"
-      echo "   3. Click 'Import' tab"
-      echo "   4. Upload: ~/schema.sql"
+      NPM_PATH="npm"
+    elif [ -f "/opt/cpanel/ea-nodejs18/bin/npm" ]; then
+      NPM_PATH="/opt/cpanel/ea-nodejs18/bin/npm"
+    elif [ -f "/opt/cpanel/ea-nodejs20/bin/npm" ]; then
+      NPM_PATH="/opt/cpanel/ea-nodejs20/bin/npm"
+    elif [ -f "/opt/cpanel/ea-nodejs16/bin/npm" ]; then
+      NPM_PATH="/opt/cpanel/ea-nodejs16/bin/npm"
     fi
     
-    # Clean up uploaded schema file
-    rm -f ~/schema.sql
+    if [ -n "$NPM_PATH" ]; then
+      echo "📦 Found npm at: $NPM_PATH"
+      $NPM_PATH install --production
+      if [ $? -eq 0 ]; then
+        echo "✅ Backend dependencies installed successfully"
+      else
+        echo "⚠️  npm install failed. Install manually via cPanel Terminal."
+      fi
+    else
+      echo "⚠️  npm not found in standard locations."
+      echo "⚠️  Please install dependencies manually:"
+      echo "   1. Login to cPanel → Terminal"
+      echo "   2. Run: cd ~/nodejs && npm install --production"
+      echo "   3. Or use cPanel Node.js app settings to install dependencies"
+    fi
 ENDSSH
-else
-  echo "❌ Failed to upload schema file"
-  echo "⚠️  You'll need to import schema manually via phpMyAdmin"
 fi
+
+# --- Step 6: SQL Schema (Manual Import) ---
+echo "🗄️  SQL schema deployment skipped (manual import via phpMyAdmin)"
+echo "📋 To import database schema manually:"
+echo "   1. Login to cPanel → phpMyAdmin"
+echo "   2. Select your database: $REMOTE_DB_NAME"
+echo "   3. Click 'Import' tab"
+echo "   4. Upload: database/schema.sql from your project"
+echo "   5. Click 'Go' to import"
+echo ""
+echo "✅ Schema file is available at: $PROJECT_ROOT/database/schema.sql"
 
 echo ""
 echo "====================================================="
 echo "📋 DEPLOYMENT SUMMARY"
 echo "====================================================="
 echo "✅ Frontend: Deployed to $REMOTE_DIR"
-echo "⚠️  Backend: Uploaded to $BACKEND_DIR"
-echo "⚠️  Database: Schema deployment attempted"
+echo "✅ Backend: Uploaded to $BACKEND_DIR"
+echo "⚠️  Database: Manual import required (see steps below)"
 echo ""
 echo "🔧 NEXT STEPS:"
-echo "1. ⚠️  IMPORTANT: Update database credentials in script:"
-echo "   - REMOTE_DB_USER (usually: cpanel_username_dbuser)"
-echo "   - REMOTE_DB_PASS (your cPanel database password)"
-echo "   - REMOTE_DB_NAME (usually: cpanel_username_dbname)"
 echo ""
-echo "2. If SQL import failed, import manually:"
+echo "1. 📦 Install Backend Dependencies:"
+echo "   - Login to cPanel → Terminal"
+echo "   - Run: cd ~/nodejs && npm install --production"
+echo "   - OR use cPanel Node.js app settings to install"
+echo ""
+echo "2. ⚙️  Setup Node.js App in cPanel:"
+echo "   - Login to cPanel → Setup Node.js App"
+echo "   - Create new application (if not already created)"
+echo "   - Application Root: nodejs"
+echo "   - Startup File: server.js"
+echo "   - Add environment variables (DB_HOST, DB_USER, DB_PASS, DB_NAME, JWT_SECRET, etc.)"
+echo ""
+echo "3. 🗄️  Import Database Schema:"
 echo "   - Login to cPanel → phpMyAdmin"
 echo "   - Select database: $REMOTE_DB_NAME"
 echo "   - Click 'Import' → Upload database/schema.sql"
 echo ""
-echo "3. Check if your cPanel supports Node.js applications"
-echo "4. If yes, configure Node.js app in cPanel to run server.js"
-echo "5. If no, deploy backend to:"
-echo "   - VPS (DigitalOcean, AWS EC2, etc.)"
-echo "   - Heroku"
-echo "   - Railway"
-echo "   - Render"
-echo "   - Or any Node.js hosting service"
+echo "4. 🚀 Start/Restart Node.js App:"
+echo "   - In cPanel → Setup Node.js App"
+echo "   - Click 'Restart App' button"
 echo ""
-echo "6. Update frontend API URL to point to your backend server"
-echo "7. Configure database connection in backend .env file"
+echo "5. ✅ Test Backend API:"
+echo "   - Visit: https://theonerupeerevolution.org/api/settings"
+echo "   - Should return JSON data (not 404 or 500 error)"
+echo ""
+echo "6. 📱 Verify Frontend:"
+echo "   - Visit: https://theonerupeerevolution.org"
+echo "   - Check browser console for errors"
+echo "   - Navigation and footer should load correctly"
 echo ""
 echo "📝 Logs saved at: $LOG_FILE"
 echo "====================================================="
