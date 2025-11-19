@@ -36,6 +36,10 @@ BACKEND_DIR="~/nodejs"  # Backend deployment directory
 # TinyMCE API Key (for frontend build)
 TINYMCE_API_KEY="umr1eq61a2537s4649w0i6dru4y7cypj6clshpyrkmsti4k7"
 
+# Razorpay Key ID (for frontend build - REQUIRED for payments)
+# Get this from: Razorpay Dashboard → Settings → API Keys
+RAZORPAY_KEY_ID="rzp_live_RhWOsPuVUOT0Xx"  # 👈 UPDATE THIS with your Razorpay Key ID
+
 # --- Create necessary folders ---
 mkdir -p "$BACKUP_DIR" "$LOG_DIR"
 
@@ -86,6 +90,7 @@ cd "$CLIENT_DIR"
 export NODE_ENV=production
 export GENERATE_SOURCEMAP=false
 export REACT_APP_TINYMCE_API_KEY="$TINYMCE_API_KEY"
+export REACT_APP_RAZORPAY_KEY_ID="$RAZORPAY_KEY_ID"
 
 # Build React app
 npm run build
@@ -212,18 +217,28 @@ echo "     DB_PASSWORD=$REMOTE_DB_PASS"
 echo "     DB_NAME=$REMOTE_DB_NAME"
 echo "     JWT_SECRET=your-secret-key-here"
 echo ""
-echo "2. 🔄 Restart Node.js App in cPanel:"
+echo "2. 🔑 Add Razorpay Environment Variables:"
+echo "   - RAZORPAY_KEY_ID=$RAZORPAY_KEY_ID"
+echo "   - RAZORPAY_KEY_SECRET=your_razorpay_secret_key"
+echo "   - RAZORPAY_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxx"
+echo ""
+echo "3. 🔄 Restart Node.js App in cPanel:"
 echo "   - Go to: cPanel → Setup Node.js App"
 echo "   - Click: 'Restart App' button"
 echo ""
-echo "3. ✅ Test API Endpoints:"
+echo "4. ✅ Test API Endpoints:"
 echo "   - https://theonerupeerevolution.org/api/settings"
 echo "   - https://theonerupeerevolution.org/api/slider"
 echo "   - https://theonerupeerevolution.org/api/gallery"
 echo ""
-echo "4. 🧪 Verify Frontend:"
+echo "5. 🧪 Verify Frontend:"
 echo "   - https://theonerupeerevolution.org"
 echo "   - Check browser console (F12) for errors"
+echo ""
+echo "6. 💳 Test Payment Integration:"
+echo "   - Visit: https://theonerupeerevolution.org/donate"
+echo "   - Complete a test donation"
+echo "   - Check admin panel for donation record"
 echo ""
 echo "====================================================="
 echo "🚀 Deployment finished at $(date)"

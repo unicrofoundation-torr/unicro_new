@@ -216,6 +216,7 @@ CREATE TABLE IF NOT EXISTS blogs (
     content TEXT NOT NULL,
     image_url VARCHAR(500),
     image_alt VARCHAR(255),
+    image_width VARCHAR(50) DEFAULT '100%',
     author VARCHAR(100) DEFAULT 'Admin',
     is_published BOOLEAN DEFAULT TRUE,
     sort_order INT DEFAULT 0,

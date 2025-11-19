@@ -1,0 +1,19 @@
+# Passenger configuration for Node.js app
+# This file is managed by cPanel - do not edit manually
+
+# Enable Passenger
+PassengerEnabled On
+PassengerAppRoot /home/theomkiq/nodejs
+PassengerBaseURI /api
+PassengerAppType node
+PassengerStartupFile server.js
+
+# Set Node.js environment
+PassengerNodejs /opt/cpanel/ea-nodejs18/bin/node
+
+# Set application environment
+SetEnv NODE_ENV production
+
+# Error handling
+PassengerFriendlyErrorPages Off
+

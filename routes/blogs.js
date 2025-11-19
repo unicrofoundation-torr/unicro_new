@@ -45,6 +45,7 @@ async function ensureTable() {
       content TEXT NOT NULL,
       image_url VARCHAR(500),
       image_alt VARCHAR(255),
+      image_width VARCHAR(50) DEFAULT '100%',
       author VARCHAR(100) DEFAULT 'Admin',
       is_published BOOLEAN DEFAULT TRUE,
       sort_order INT DEFAULT 0,
@@ -52,6 +53,16 @@ async function ensureTable() {
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
+  
+  // Add image_width column if it doesn't exist (for existing databases)
+  try {
+    await db.execute(`ALTER TABLE blogs ADD COLUMN image_width VARCHAR(50) DEFAULT '100%'`);
+  } catch (error) {
+    // Column already exists, ignore error
+    if (!error.message.includes('Duplicate column name')) {
+      console.error('Error adding image_width column:', error);
+    }
+  }
 }
 
 // Generate slug from title
@@ -129,7 +140,7 @@ router.get('/admin/:id', authenticateToken, async (req, res) => {
 router.post('/', authenticateToken, upload.single('image'), async (req, res) => {
   try {
     await ensureTable();
-    const { title, excerpt, content, image_alt, author, is_published, sort_order } = req.body;
+    const { title, excerpt, content, image_alt, image_width, author, is_published, sort_order } = req.body;
     
     if (!title || !content) {
       return res.status(400).json({ error: 'Title and content are required' });
@@ -155,8 +166,8 @@ router.post('/', authenticateToken, upload.single('image'), async (req, res) => 
     const imageUrl = req.file ? `/uploads/blogs/${req.file.filename}` : null;
 
     const [result] = await db.execute(
-      'INSERT INTO blogs (title, slug, excerpt, content, image_url, image_alt, author, is_published, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [title, finalSlug, excerpt || null, content, imageUrl, image_alt || null, author || 'Admin', is_published === 'true' || is_published === true, sort_order || 0]
+      'INSERT INTO blogs (title, slug, excerpt, content, image_url, image_alt, image_width, author, is_published, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [title, finalSlug, excerpt || null, content, imageUrl, image_alt || null, image_width || '100%', author || 'Admin', is_published === 'true' || is_published === true, sort_order || 0]
     );
 
     const [newBlog] = await db.execute('SELECT * FROM blogs WHERE id = ?', [result.insertId]);
@@ -171,7 +182,7 @@ router.post('/', authenticateToken, upload.single('image'), async (req, res) => 
 router.put('/:id', authenticateToken, upload.single('image'), async (req, res) => {
   try {
     await ensureTable();
-    const { title, excerpt, content, image_alt, author, is_published, sort_order } = req.body;
+    const { title, excerpt, content, image_alt, image_width, author, is_published, sort_order } = req.body;
     
     if (!title || !content) {
       return res.status(400).json({ error: 'Title and content are required' });
@@ -209,8 +220,8 @@ router.put('/:id', authenticateToken, upload.single('image'), async (req, res) =
     }
 
     await db.execute(
-      'UPDATE blogs SET title = ?, slug = ?, excerpt = ?, content = ?, image_url = ?, image_alt = ?, author = ?, is_published = ?, sort_order = ? WHERE id = ?',
-      [title, slug, excerpt || null, content, imageUrl, image_alt || null, author || 'Admin', is_published === 'true' || is_published === true, sort_order || 0, req.params.id]
+      'UPDATE blogs SET title = ?, slug = ?, excerpt = ?, content = ?, image_url = ?, image_alt = ?, image_width = ?, author = ?, is_published = ?, sort_order = ? WHERE id = ?',
+      [title, slug, excerpt || null, content, imageUrl, image_alt || null, image_width || existing[0].image_width || '100%', author || 'Admin', is_published === 'true' || is_published === true, sort_order || 0, req.params.id]
     );
 
     const [updated] = await db.execute('SELECT * FROM blogs WHERE id = ?', [req.params.id]);
