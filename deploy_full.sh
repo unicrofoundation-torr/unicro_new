@@ -13,7 +13,7 @@ LOCAL_DB_NAME="charity_website"
 # Remote Database (cPanel - UPDATE THESE!)
 REMOTE_DB_USER="theomkiq_charity"  # 👈 Update with your cPanel database user
 REMOTE_DB_PASS="Unicro@001"  # 👈 Update with your cPanel database password
-REMOTE_DB_NAME="theomkiq_charity_website"  # 👈 Update with your cPanel database name
+REMOTE_DB_NAME="theomkiq_charity"  # 👈 Update with your cPanel database name
 REMOTE_DB_HOST="localhost"  # Usually localhost on cPanel
 
 # Project paths
@@ -116,6 +116,7 @@ rsync -avz \
   --exclude='.env' \
   --exclude='*.map' \
   --exclude='.DS_Store' \
+  --exclude='api/' \
   --include='.htaccess' \
   -e "ssh -i $PRIVATE_KEY -p $CPANEL_PORT" \
   "$BUILD_DIR/" $CPANEL_USER@$CPANEL_HOST:$FRONTEND_DIR/
@@ -214,7 +215,7 @@ echo "     PORT=5000"
 echo "     DB_HOST=$REMOTE_DB_HOST"
 echo "     DB_USER=$REMOTE_DB_USER"
 echo "     DB_PASSWORD=$REMOTE_DB_PASS"
-echo "     DB_NAME=$REMOTE_DB_NAME"
+echo "     DB_NAME=$REMOTE_DB_NAME (should be: theomkiq_charity)"
 echo "     JWT_SECRET=your-secret-key-here"
 echo ""
 echo "2. 🔑 Add Razorpay Environment Variables:"
@@ -222,20 +223,25 @@ echo "   - RAZORPAY_KEY_ID=$RAZORPAY_KEY_ID"
 echo "   - RAZORPAY_KEY_SECRET=your_razorpay_secret_key"
 echo "   - RAZORPAY_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxx"
 echo ""
-echo "3. 🔄 Restart Node.js App in cPanel:"
+echo "3. 📝 Create .htaccess file (if Application URL is /api):"
+echo "   - Run: ssh -i ~/.ssh/key_private -p $CPANEL_PORT $CPANEL_USER@$CPANEL_HOST"
+echo "   - Then: mkdir -p ~/public_html/api && cat > ~/public_html/api/.htaccess << 'EOF'"
+echo "   - Paste .htaccess content (see FIX_HTACCESS_ERROR_QUICK.md)"
+echo ""
+echo "4. 🔄 Restart Node.js App in cPanel:"
 echo "   - Go to: cPanel → Setup Node.js App"
 echo "   - Click: 'Restart App' button"
 echo ""
-echo "4. ✅ Test API Endpoints:"
+echo "5. ✅ Test API Endpoints:"
 echo "   - https://theonerupeerevolution.org/api/settings"
 echo "   - https://theonerupeerevolution.org/api/slider"
 echo "   - https://theonerupeerevolution.org/api/gallery"
 echo ""
-echo "5. 🧪 Verify Frontend:"
+echo "6. 🧪 Verify Frontend:"
 echo "   - https://theonerupeerevolution.org"
 echo "   - Check browser console (F12) for errors"
 echo ""
-echo "6. 💳 Test Payment Integration:"
+echo "7. 💳 Test Payment Integration:"
 echo "   - Visit: https://theonerupeerevolution.org/donate"
 echo "   - Complete a test donation"
 echo "   - Check admin panel for donation record"

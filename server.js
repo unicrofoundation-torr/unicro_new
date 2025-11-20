@@ -18,7 +18,9 @@ async function testDatabaseConnection() {
   } catch (error) {
     console.error('❌ Database connection failed:', error.message);
     console.log('🔧 Make sure MySQL is running and credentials are correct');
-    process.exit(1);
+    console.log('⚠️ App will continue but database operations may fail');
+    // Don't exit - let Passenger handle it, or app will crash loop
+    // process.exit(1); // Removed to prevent crash loop
   }
 }
 
