@@ -6,11 +6,17 @@ const crypto = require('crypto');
 const Razorpay = require('razorpay');
 const { authenticateToken } = require('./admin');
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || '',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || ''
-});
+// Initialize Razorpay lazily (only when needed)
+let razorpay = null;
+function getRazorpayInstance() {
+  if (!razorpay) {
+    razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID || '',
+      key_secret: process.env.RAZORPAY_KEY_SECRET || ''
+    });
+  }
+  return razorpay;
+}
 
 // Helpers
 async function ensureTables() {
@@ -170,7 +176,7 @@ async function getOrCreatePlan(amount, cycle) {
     
     if (existing.length && existing[0].razorpay_plan_id) {
       try {
-        const plan = await razorpay.plans.fetch(existing[0].razorpay_plan_id);
+        const plan = await getRazorpayInstance().plans.fetch(existing[0].razorpay_plan_id);
         return plan;
       } catch (error) {
         // Plan doesn't exist in Razorpay, create new one
@@ -187,7 +193,7 @@ async function getOrCreatePlan(amount, cycle) {
     yearly: 'yearly'
   };
   
-  const plan = await razorpay.plans.create({
+  const plan = await getRazorpayInstance().plans.create({
     period: periodMap[cycle],
     interval: 1,
     item: {
@@ -267,7 +273,7 @@ router.post('/razorpay/create-subscription', async (req, res) => {
     safeTotalCount = Math.max(1, Math.min(safeTotalCount || 100, 5200));
     
     // Use only total_count (Razorpay doesn't allow both end_at and total_count)
-    const subscription = await razorpay.subscriptions.create({
+    const subscription = await getRazorpayInstance().subscriptions.create({
       plan_id: plan.id,
       customer_notify: 1,
       total_count: safeTotalCount,
