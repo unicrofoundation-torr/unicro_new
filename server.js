@@ -85,20 +85,31 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// Start server
-async function startServer() {
-  await testDatabaseConnection();
-  
-  app.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT}`);
-    console.log(`📱 Frontend: http://localhost:3000`);
-    console.log(`🔧 Backend API: http://localhost:5000/api`);
-    console.log(`👤 Admin Panel: http://localhost:3000/admin/login`);
-    console.log(`🔑 Admin Login: username: admin, password: admin123`);
+// Test database connection (non-blocking)
+testDatabaseConnection().catch(err => {
+  console.error('Database connection test failed:', err.message);
+});
+
+// Always export app for Passenger (cPanel)
+// Passenger requires module.exports = app
+module.exports = app;
+
+// For local development: Start server with app.listen()
+if (require.main === module) {
+  async function startServer() {
+    await testDatabaseConnection();
+    
+    app.listen(PORT, () => {
+      console.log(`🚀 Server is running on port ${PORT}`);
+      console.log(`📱 Frontend: http://localhost:3000`);
+      console.log(`🔧 Backend API: http://localhost:5000/api`);
+      console.log(`👤 Admin Panel: http://localhost:3000/admin/login`);
+      console.log(`🔑 Admin Login: username: admin, password: admin123`);
+    });
+  }
+
+  startServer().catch(error => {
+    console.error('Failed to start server:', error);
+    process.exit(1);
   });
 }
-
-startServer().catch(error => {
-  console.error('Failed to start server:', error);
-  process.exit(1);
-});
