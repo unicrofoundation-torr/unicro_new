@@ -1,14 +1,8 @@
-💾 Taking MySQL Backup (Local)...
-✅ MySQL backup successful: /mnt/e/kanishk data/projects/UNICRO/backups/charity_website_29-12-2025_11-52.sql
-📦 Pushing latest code to GitHub...
-[main 33913a3] Auto-deploy: 2025-12-29_11-52-57
- 5 files changed, 923 insertions(+), 18 deletions(-)
- create mode 100644 backups/charity_website_29-12-2025_11-52.sql
- create mode 100644 logs/deploy_full_29-12-2025_11-52.log
- create mode 100644 logs/fix_razorpay_complete_29-12-2025_11-39.log
-📦 Installing client dependencies...
-   Dependencies already installed
-🏗️ Building React frontend...
+
+Step 1: Rebuilding frontend with LIVE Razorpay key...
+   Using Razorpay Key ID: rzp_live_RhWOsPuVUOT0Xx
+
+   Building production bundle...
 
 > client@0.1.0 build
 > react-scripts build
@@ -78,101 +72,49 @@ Find out more about deployment here:
 
   https://cra.link/deployment
 
-✅ React build successful
-📤 Deploying frontend to cPanel...
-sending incremental file list
-./
-asset-manifest.json
-            517 100%    0.00kB/s    0:00:00              517 100%    0.00kB/s    0:00:00 (xfr#1, to-chk=47/50)
-index.html
-            700  81%   85.45kB/s    0:00:00              854 100%  104.25kB/s    0:00:00 (xfr#2, to-chk=45/50)
-images/
-images/gallery/
-images/our-work/
-static/
-static/css/
-static/css/main.f916a162.css
-            700   1%    3.62kB/s    0:00:13           50,958 100%  257.84kB/s    0:00:00 (xfr#3, to-chk=33/50)
-static/js/
-static/js/453.eb570f4f.chunk.js
-            700  15%    3.35kB/s    0:00:01            4,465 100%   21.37kB/s    0:00:00 (xfr#4, to-chk=32/50)
-static/js/main.61e5536a.js
-            720   0%    1.26kB/s    0:06:50          519,415 100%  874.55kB/s    0:00:00 (xfr#5, to-chk=31/50)
-static/js/main.61e5536a.js.LICENSE.txt
-            700  48%    1.16kB/s    0:00:00            1,433 100%    2.37kB/s    0:00:00 (xfr#6, to-chk=30/50)
-uploads/
-uploads/blogs/
-uploads/gallery/
-uploads/our-work/
+✅ Frontend build successful
+⚠️  Warning: Could not verify key in build files
 
-sent 2,083 bytes  received 5,029 bytes  1,293.09 bytes/sec
-total size is 16,443,273  speedup is 2,312.05
+Step 2: Deploying frontend to server...
 ✅ Frontend deployed successfully
-📤 Deploying backend to cPanel...
-sending incremental file list
-routes/donations.js
-            700   2%    0.00kB/s    0:00:00           25,304 100%   23.46MB/s    0:00:00 (xfr#1, to-chk=8/23)
 
-sent 2,396 bytes  received 236 bytes  584.89 bytes/sec
-total size is 174,413  speedup is 66.27
-✅ Backend files deployed successfully
-📦 Installing backend dependencies on server...
-Pseudo-terminal will not be allocated because stdin is not a terminal.
-   Checking for npm...
-   ⚠️ npm not found - please install dependencies manually in cPanel
-   Go to: cPanel → Setup Node.js App → Your App → NPM Install
-✅ Backend dependencies installation completed
+Step 3: Checking backend configuration...
+
 
 =====================================================
-🎉 Full Stack Deployment Complete!
+✅ Frontend Fix Complete!
 =====================================================
 
-📊 Deployment Summary:
-   ✅ Frontend deployed to: ~/public_html
-   ✅ Backend deployed to: ~/nodejs
-   ✅ Logs saved at: /mnt/e/kanishk data/projects/UNICRO/logs/deploy_full_29-12-2025_11-52.log
+📋 CRITICAL: Backend Environment Variables
 
-📋 Next Steps:
+You MUST update backend environment variables in cPanel:
 
-1. ⚙️  Configure Environment Variables in cPanel:
-   - Go to: cPanel → Setup Node.js App → Your App
-   - Add these environment variables:
-     NODE_ENV=production
-     PORT=5000
-     DB_HOST=localhost
-     DB_USER=theomkiq_charity
-     DB_PASSWORD=Unicro@001
-     DB_NAME=theomkiq_charity (should be: theomkiq_charity)
-     JWT_SECRET=your-secret-key-here
+1. Go to: cPanel → Setup Node.js App → Your App
+2. Click: 'Environment Variables' or 'Edit'
+3. Set these variables with LIVE keys:
 
-2. 🔑 Add Razorpay Environment Variables:
-   - RAZORPAY_KEY_ID=rzp_live_RhWOsPuVUOT0Xx
-   - RAZORPAY_KEY_SECRET=your_razorpay_secret_key
-   - RAZORPAY_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxx
+   RAZORPAY_KEY_ID=rzp_live_RhWOsPuVUOT0Xx
+   RAZORPAY_KEY_SECRET=(your-live-secret-key)
+   RAZORPAY_WEBHOOK_SECRET=(your-live-webhook-secret)
 
-3. 📝 Create .htaccess file (if Application URL is /api):
-   - Run: ssh -i ~/.ssh/key_private -p 21098 theomkiq@server357.web-hosting.com
-   - Then: mkdir -p ~/public_html/api && cat > ~/public_html/api/.htaccess << 'EOF'
-   - Paste .htaccess content (see FIX_HTACCESS_ERROR_QUICK.md)
+⚠️  IMPORTANT:
+   - Keys MUST start with 'rzp_live_' (NOT 'rzp_test_')
+   - After updating, click 'Save'
+   - Then click 'Restart App'
+   - Wait 10-30 seconds for app to restart
 
-4. 🔄 Restart Node.js App in cPanel:
-   - Go to: cPanel → Setup Node.js App
-   - Click: 'Restart App' button
+4. Verify Razorpay Dashboard:
+   - Go to: https://dashboard.razorpay.com/
+   - Check top-right corner says 'Live Mode' (not 'Test Mode')
+   - Go to: Settings → API Keys
+   - Make sure you're viewing 'Live Mode' keys
 
-5. ✅ Test API Endpoints:
-   - https://theonerupeerevolution.org/api/settings
-   - https://theonerupeerevolution.org/api/slider
-   - https://theonerupeerevolution.org/api/gallery
-
-6. 🧪 Verify Frontend:
-   - https://theonerupeerevolution.org
-   - Check browser console (F12) for errors
-
-7. 💳 Test Payment Integration:
+5. Test:
+   - Clear browser cache (Ctrl+Shift+Delete)
    - Visit: https://theonerupeerevolution.org/donate
-   - Complete a test donation
-   - Check admin panel for donation record
+   - Try making a donation
+   - Payment page should NOT show 'TEST MODE'
 
 =====================================================
-🚀 Deployment finished at Mon Dec 29 11:53:28 UTC 2025
+Logs saved at: /mnt/e/kanishk data/projects/UNICRO/logs/fix_razorpay_complete_29-12-2025_11-53.log
 =====================================================
