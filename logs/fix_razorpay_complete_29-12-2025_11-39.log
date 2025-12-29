@@ -1,72 +1,8 @@
-💾 Taking MySQL Backup (Local)...
-✅ MySQL backup successful: /mnt/e/kanishk data/projects/UNICRO/backups/charity_website_29-12-2025_11-33.sql
-📦 Pushing latest code to GitHub...
-[main b3de239] Auto-deploy: 2025-12-29_11-33-40
- 71 files changed, 3269 insertions(+), 5477 deletions(-)
- delete mode 100644 FIX_502_500_ERRORS.md
- delete mode 100644 FIX_508_LOOP_COMPLETE.md
- delete mode 100644 FIX_RAZORPAY_ENV_EXPLANATION.md
- delete mode 100644 HTACCESS_SETUP_GUIDE.md
- delete mode 100644 aggressive_rebuild_live_key.sh
- create mode 100644 backups/charity_website_29-12-2025_11-33.sql
- delete mode 100644 check_app_runtime.sh
- delete mode 100644 check_backend_status.sh
- delete mode 100644 check_razorpay_key.sh
- delete mode 100644 check_server_status.sh
- delete mode 100644 check_test_key_final.sh
- create mode 100644 checkpoints/checkpoint_20251123_043240/CHECKPOINT_INFO.md
- create mode 100644 checkpoints/checkpoint_20251123_043240/Donate.js
- create mode 100644 checkpoints/checkpoint_20251123_043240/api.js
- create mode 100644 checkpoints/checkpoint_20251123_043240/api_htaccess
- create mode 100644 checkpoints/checkpoint_20251123_043240/client_package.json
- create mode 100644 checkpoints/checkpoint_20251123_043240/database.js
- create mode 100644 checkpoints/checkpoint_20251123_043240/environment_variables.txt
- create mode 100644 checkpoints/checkpoint_20251123_043240/package.json
- create mode 100644 checkpoints/checkpoint_20251123_043240/public_html_htaccess
- create mode 100644 checkpoints/checkpoint_20251123_043240/restore_checkpoint.sh
- create mode 100644 checkpoints/checkpoint_20251123_043240/server.js
- delete mode 100644 complete_rebuild_and_deploy.sh
- delete mode 100644 create_checkpoint.sh
- delete mode 100644 definitive_razorpay_fix.sh
- create mode 100644 deploy-frontend-only.bat
- create mode 100644 deploy-frontend-only.sh
- delete mode 100644 deploy_and_fix.sh
- delete mode 100644 deploy_frontend_fix.sh
- delete mode 100644 diagnose_508_loop.sh
- delete mode 100644 diagnose_server.sh
- delete mode 100644 emergency_backend_fix.sh
- delete mode 100644 find_test_key_source.sh
- create mode 100644 fix-razorpay-complete.sh
- create mode 100644 fix-razorpay-live-mode.sh
- delete mode 100644 fix_508_after_frontend_deploy.sh
- delete mode 100644 fix_508_loop.sh
- delete mode 100644 fix_admin_and_razorpay.sh
- delete mode 100644 fix_all_htaccess_comprehensive.sh
- delete mode 100644 fix_api_routing.sh
- delete mode 100644 fix_database_config.sh
- delete mode 100644 fix_duplicate_passenger_config.sh
- delete mode 100644 fix_htaccess_clean.sh
- delete mode 100644 fix_server_complete.sh
- delete mode 100644 fix_test_key_in_build.sh
- delete mode 100644 force_fresh_deploy.sh
- delete mode 100644 force_rebuild_live_razorpay.sh
- delete mode 100644 hardcode_razorpay_key.sh
- create mode 100644 logs/deploy_frontend_29-12-2025_10-24.log
- create mode 100644 logs/deploy_full_29-12-2025_11-33.log
- create mode 100644 logs/deploy_live_razorpay_23-11-2025_08-36.log
- delete mode 100644 nuclear_rebuild.sh
- delete mode 100644 quick_backend_fix.sh
- delete mode 100644 quick_backend_restart.sh
- delete mode 100644 rebuild_frontend_with_live_razorpay.sh
- delete mode 100644 remove_htaccess.sh
- delete mode 100644 restore_from_checkpoint.sh
- delete mode 100644 simple_rebuild_deploy.sh
- create mode 100644 verify-razorpay-config.sh
- delete mode 100644 verify_and_deploy_fresh_build.sh
- delete mode 100644 verify_server_export.sh
-📦 Installing client dependencies...
-   Dependencies already installed
-🏗️ Building React frontend...
+
+Step 1: Rebuilding frontend with LIVE Razorpay key...
+   Using Razorpay Key ID: rzp_live_RhWOsPuVUOT0Xx
+
+   Building production bundle...
 
 > client@0.1.0 build
 > react-scripts build
@@ -136,111 +72,49 @@ Find out more about deployment here:
 
   https://cra.link/deployment
 
-✅ React build successful
-📤 Deploying frontend to cPanel...
-sending incremental file list
-./
-asset-manifest.json
-            517 100%    0.00kB/s    0:00:00              517 100%    0.00kB/s    0:00:00 (xfr#1, to-chk=47/50)
-index.html
-            854 100%   11.27kB/s    0:00:00              854 100%   11.27kB/s    0:00:00 (xfr#2, to-chk=45/50)
-deleting static/js/main.09ab2f15.js.LICENSE.txt
-deleting static/js/main.09ab2f15.js
-deleting uploads/gallery/QrCode.jpeg
-images/
-images/gallery/
-images/our-work/
-static/
-static/css/
-static/css/main.f916a162.css
-            700   1%    3.02kB/s    0:00:16           50,958 100%  218.26kB/s    0:00:00 (xfr#3, to-chk=33/50)
-static/js/
-static/js/453.eb570f4f.chunk.js
-            700  15%    1.84kB/s    0:00:02            4,465 100%   11.72kB/s    0:00:00 (xfr#4, to-chk=32/50)
-static/js/main.61e5536a.js
-         32,768   6%   41.45kB/s    0:00:11          519,415 100%  635.64kB/s    0:00:00 (xfr#5, to-chk=31/50)
-static/js/main.61e5536a.js.LICENSE.txt
-          1,433 100%    1.69kB/s    0:00:00            1,433 100%    1.69kB/s    0:00:00 (xfr#6, to-chk=30/50)
-uploads/
-uploads/blogs/
-uploads/gallery/
-uploads/our-work/
+✅ Frontend build successful
+⚠️  Warning: Could not verify key in build files
 
-sent 138,399 bytes  received 786 bytes  21,413.08 bytes/sec
-total size is 16,443,273  speedup is 118.14
+Step 2: Deploying frontend to server...
 ✅ Frontend deployed successfully
-📤 Deploying backend to cPanel...
-sending incremental file list
-./
-package.json
-            700  69%    0.00kB/s    0:00:00            1,010 100%  302.73kB/s    0:00:00 (xfr#1, to-chk=20/23)
-server.js
-          1,426  31%  232.10kB/s    0:00:00            4,564 100%  742.84kB/s    0:00:00 (xfr#2, to-chk=18/23)
-routes/donations.js
-            700   3%   15.54kB/s    0:00:01           22,581 100%  479.39kB/s    0:00:00 (xfr#3, to-chk=8/23)
-routes/gallery.js
-         10,358 100%  187.32kB/s    0:00:00           10,358 100%  187.32kB/s    0:00:00 (xfr#4, to-chk=6/23)
 
-sent 5,008 bytes  received 466 bytes  995.27 bytes/sec
-total size is 171,690  speedup is 31.36
-✅ Backend files deployed successfully
-📦 Installing backend dependencies on server...
-Pseudo-terminal will not be allocated because stdin is not a terminal.
-   Checking for npm...
-   ⚠️ npm not found - please install dependencies manually in cPanel
-   Go to: cPanel → Setup Node.js App → Your App → NPM Install
-✅ Backend dependencies installation completed
+Step 3: Checking backend configuration...
+
 
 =====================================================
-🎉 Full Stack Deployment Complete!
+✅ Frontend Fix Complete!
 =====================================================
 
-📊 Deployment Summary:
-   ✅ Frontend deployed to: ~/public_html
-   ✅ Backend deployed to: ~/nodejs
-   ✅ Logs saved at: /mnt/e/kanishk data/projects/UNICRO/logs/deploy_full_29-12-2025_11-33.log
+📋 CRITICAL: Backend Environment Variables
 
-📋 Next Steps:
+You MUST update backend environment variables in cPanel:
 
-1. ⚙️  Configure Environment Variables in cPanel:
-   - Go to: cPanel → Setup Node.js App → Your App
-   - Add these environment variables:
-     NODE_ENV=production
-     PORT=5000
-     DB_HOST=localhost
-     DB_USER=theomkiq_charity
-     DB_PASSWORD=Unicro@001
-     DB_NAME=theomkiq_charity (should be: theomkiq_charity)
-     JWT_SECRET=your-secret-key-here
+1. Go to: cPanel → Setup Node.js App → Your App
+2. Click: 'Environment Variables' or 'Edit'
+3. Set these variables with LIVE keys:
 
-2. 🔑 Add Razorpay Environment Variables:
-   - RAZORPAY_KEY_ID=rzp_live_RhWOsPuVUOT0Xx
-   - RAZORPAY_KEY_SECRET=your_razorpay_secret_key
-   - RAZORPAY_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxx
+   RAZORPAY_KEY_ID=rzp_live_RhWOsPuVUOT0Xx
+   RAZORPAY_KEY_SECRET=(your-live-secret-key)
+   RAZORPAY_WEBHOOK_SECRET=(your-live-webhook-secret)
 
-3. 📝 Create .htaccess file (if Application URL is /api):
-   - Run: ssh -i ~/.ssh/key_private -p 21098 theomkiq@server357.web-hosting.com
-   - Then: mkdir -p ~/public_html/api && cat > ~/public_html/api/.htaccess << 'EOF'
-   - Paste .htaccess content (see FIX_HTACCESS_ERROR_QUICK.md)
+⚠️  IMPORTANT:
+   - Keys MUST start with 'rzp_live_' (NOT 'rzp_test_')
+   - After updating, click 'Save'
+   - Then click 'Restart App'
+   - Wait 10-30 seconds for app to restart
 
-4. 🔄 Restart Node.js App in cPanel:
-   - Go to: cPanel → Setup Node.js App
-   - Click: 'Restart App' button
+4. Verify Razorpay Dashboard:
+   - Go to: https://dashboard.razorpay.com/
+   - Check top-right corner says 'Live Mode' (not 'Test Mode')
+   - Go to: Settings → API Keys
+   - Make sure you're viewing 'Live Mode' keys
 
-5. ✅ Test API Endpoints:
-   - https://theonerupeerevolution.org/api/settings
-   - https://theonerupeerevolution.org/api/slider
-   - https://theonerupeerevolution.org/api/gallery
-
-6. 🧪 Verify Frontend:
-   - https://theonerupeerevolution.org
-   - Check browser console (F12) for errors
-
-7. 💳 Test Payment Integration:
+5. Test:
+   - Clear browser cache (Ctrl+Shift+Delete)
    - Visit: https://theonerupeerevolution.org/donate
-   - Complete a test donation
-   - Check admin panel for donation record
+   - Try making a donation
+   - Payment page should NOT show 'TEST MODE'
 
 =====================================================
-🚀 Deployment finished at Mon Dec 29 11:34:11 UTC 2025
+Logs saved at: /mnt/e/kanishk data/projects/UNICRO/logs/fix_razorpay_complete_29-12-2025_11-39.log
 =====================================================

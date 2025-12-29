@@ -236,17 +236,6 @@ router.post('/razorpay/create-subscription', async (req, res) => {
       return res.status(400).json({ error: 'Minimum amount for subscription is ₹1' });
     }
     
-    // Upsert donor by email
-    const [existing] = await db.execute('SELECT id FROM donors WHERE email = ? LIMIT 1', [email]);
-    let donorId;
-    if (existing.length) {
-      donorId = existing[0].id;
-      await db.execute('UPDATE donors SET name = ?, phone = ? WHERE id = ?', [name, phone || '', donorId]);
-    } else {
-      const [ins] = await db.execute('INSERT INTO donors (name, email, phone) VALUES (?, ?, ?)', [name, email, phone || '']);
-      donorId = ins.insertId;
-    }
-    
     // Get or create plan
     const plan = await getOrCreatePlan(amountNum, cycle);
     
@@ -272,22 +261,39 @@ router.post('/razorpay/create-subscription', async (req, res) => {
     // Ensure it's at least 1 and at most 5200 (Razorpay's limit) and doesn't exceed 30 years
     safeTotalCount = Math.max(1, Math.min(safeTotalCount || 100, 5200));
     
+    // Store donor info in subscription notes (will create donor after payment succeeds)
     // Use only total_count (Razorpay doesn't allow both end_at and total_count)
     const subscription = await getRazorpayInstance().subscriptions.create({
       plan_id: plan.id,
       customer_notify: 1,
       total_count: safeTotalCount,
       notes: {
-        donor_id: donorId.toString(),
+        donor_name: name,
+        donor_email: email,
+        donor_phone: phone || '',
+        donor_address: address || '',
         cycle: cycle,
-        address: address || ''
+        amount: amountNum.toString()
       }
     });
     
-    // Create donation record
+    // Create donation record WITHOUT donor_id (will be set after payment succeeds)
+    // Store donor info in metadata for later use
     const [donIns] = await db.execute(
-      'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_subscription_id, razorpay_plan_id, metadata) VALUES (?, ?, ?, ?, ?, "created", ?, ?, JSON_OBJECT("subscription", ?))',
-      [donorId, Math.round(amountNum * 100), 'INR', cycle, address || '', subscription.id, plan.id, JSON.stringify(subscription)]
+      'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_subscription_id, razorpay_plan_id, metadata) VALUES (NULL, ?, ?, ?, ?, "created", ?, ?, JSON_OBJECT("subscription", ?, "donor_info", JSON_OBJECT("name", ?, "email", ?, "phone", ?, "address", ?)))',
+      [
+        Math.round(amountNum * 100), 
+        'INR', 
+        cycle, 
+        address || '', 
+        subscription.id, 
+        plan.id, 
+        JSON.stringify(subscription),
+        name,
+        email,
+        phone || '',
+        address || ''
+      ]
     );
     const donationId = donIns.insertId;
     
@@ -333,7 +339,16 @@ router.post('/check-email', async (req, res) => {
       return res.status(400).json({ error: 'Invalid email format', exists: false });
     }
     
-    const [rows] = await db.execute('SELECT id FROM donors WHERE email = ? LIMIT 1', [email]);
+    // Only check for emails with successful payments (active donations)
+    // This prevents blocking users who tried but payment failed
+    const [rows] = await db.execute(
+      `SELECT DISTINCT d.id 
+       FROM donors d 
+       INNER JOIN donations don ON d.id = don.donor_id 
+       WHERE d.email = ? AND don.status = 'active' 
+       LIMIT 1`, 
+      [email]
+    );
     return res.json({ exists: rows.length > 0 });
   } catch (error) {
     console.error('Check email error:', error);
@@ -470,9 +485,55 @@ router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), asyn
     const payment = payload.payload.payment?.entity || payload.payload.payment;
     
     if (subscription?.id) {
-      const [rows] = await db.execute('SELECT id, donor_id FROM donations WHERE razorpay_subscription_id = ? LIMIT 1', [subscription.id]);
+      const [rows] = await db.execute('SELECT id, donor_id, metadata FROM donations WHERE razorpay_subscription_id = ? LIMIT 1', [subscription.id]);
       if (rows.length) {
         const donationId = rows[0].id;
+        let donorId = rows[0].donor_id;
+        
+        // Create donor if payment is successful and donor doesn't exist yet
+        if ((event === 'subscription.activated' || event === 'subscription.charged') && !donorId) {
+          try {
+            // Get donor info from subscription notes or metadata
+            const donorInfo = subscription.notes || {};
+            const donorName = donorInfo.donor_name || subscription.customer?.name || '';
+            const donorEmail = donorInfo.donor_email || subscription.customer?.email || '';
+            const donorPhone = donorInfo.donor_phone || subscription.customer?.contact || '';
+            const donorAddress = donorInfo.donor_address || '';
+            
+            // Also try to get from donation metadata
+            let metadata = {};
+            try {
+              metadata = rows[0].metadata ? JSON.parse(rows[0].metadata) : {};
+            } catch (e) {
+              console.error('Error parsing metadata:', e);
+            }
+            
+            const finalName = donorName || metadata.donor_info?.name || '';
+            const finalEmail = donorEmail || metadata.donor_info?.email || '';
+            const finalPhone = donorPhone || metadata.donor_info?.phone || '';
+            const finalAddress = donorAddress || metadata.donor_info?.address || '';
+            
+            if (finalName && finalEmail) {
+              // Check if donor already exists
+              const [existingDonor] = await db.execute('SELECT id FROM donors WHERE email = ? LIMIT 1', [finalEmail]);
+              
+              if (existingDonor.length) {
+                donorId = existingDonor[0].id;
+                // Update donor info
+                await db.execute('UPDATE donors SET name = ?, phone = ? WHERE id = ?', [finalName, finalPhone || '', donorId]);
+              } else {
+                // Create new donor
+                const [ins] = await db.execute('INSERT INTO donors (name, email, phone) VALUES (?, ?, ?)', [finalName, finalEmail, finalPhone || '']);
+                donorId = ins.insertId;
+              }
+              
+              // Update donation with donor_id
+              await db.execute('UPDATE donations SET donor_id = ?, note = ? WHERE id = ?', [donorId, finalAddress || '', donationId]);
+            }
+          } catch (donorError) {
+            console.error('Error creating donor in webhook:', donorError);
+          }
+        }
         
         if (event === 'subscription.activated' || event === 'subscription.charged') {
           await db.execute('UPDATE donations SET status = "active", updated_at = CURRENT_TIMESTAMP WHERE id = ?', [donationId]);
