@@ -1,0 +1,18 @@
+# React Router - Handle client-side routing
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # Don't rewrite files or directories that exist
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  
+  # Don't rewrite /api requests (handled by Passenger)
+  RewriteCond %{REQUEST_URI} !^/api
+  
+  # Don't rewrite /uploads (static files)
+  RewriteCond %{REQUEST_URI} !^/uploads
+  
+  # Send everything else to index.html for React Router
+  RewriteRule . /index.html [L]
+</IfModule>

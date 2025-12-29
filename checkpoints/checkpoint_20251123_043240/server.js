@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs');
 const multer = require('multer');
 require('dotenv').config();
 
@@ -60,25 +59,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded files
-// In production: serve from ~/public_html/uploads (absolute path)
-// In development: serve from client/public/uploads
-const uploadsPath = (() => {
-  const os = require('os');
-  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
-  const publicHtmlUploads = path.join(homeDir, 'public_html/uploads');
-  const clientUploads = path.join(__dirname, 'client/public/uploads');
-  
-  // Check if public_html/uploads exists (production)
-  if (fs.existsSync(publicHtmlUploads)) {
-    console.log(`[Server] Serving uploads from: ${publicHtmlUploads}`);
-    return publicHtmlUploads;
-  }
-  // Otherwise use client/public/uploads (development)
-  console.log(`[Server] Serving uploads from: ${clientUploads}`);
-  return clientUploads;
-})();
-
-app.use('/uploads', express.static(uploadsPath));
+app.use('/uploads', express.static(path.join(__dirname, 'client/public/uploads')));
 
 // Routes
 app.use('/api/pages', require('./routes/pages'));

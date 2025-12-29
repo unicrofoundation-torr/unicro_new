@@ -45,6 +45,7 @@ mkdir -p "$BACKUP_DIR" "$LOG_DIR"
 
 # --- Create log file ---
 LOG_FILE="$LOG_DIR/deploy_full_$(date +%d-%m-%Y_%H-%M).log"
+# Use tee for logging (works with bash)
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 # --- Step 1: MySQL Backup (Local) ---

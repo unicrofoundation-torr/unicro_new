@@ -12,21 +12,13 @@ echo "Creating .htaccess file in public_html/api/..."
 ssh -i $PRIVATE_KEY -p $CPANEL_PORT $CPANEL_USER@$CPANEL_HOST << 'ENDSSH'
 mkdir -p ~/public_html/api
 cat > ~/public_html/api/.htaccess << 'EOF'
-# Passenger configuration for Node.js app
-PassengerEnabled On
-PassengerAppRoot /home/theomkiq/nodejs
-PassengerBaseURI /api
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/theomkiq/nodejs"
+PassengerBaseURI "/api"
+PassengerNodejs "/home/theomkiq/nodevenv/nodejs/14/bin/node"
 PassengerAppType node
 PassengerStartupFile server.js
-
-# Set Node.js environment (Node.js 14.21.2)
-PassengerNodejs /opt/cpanel/ea-nodejs14/bin/node
-
-# Set application environment
-SetEnv NODE_ENV production
-
-# Error handling
-PassengerFriendlyErrorPages Off
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
 EOF
 
 echo "✅ .htaccess file created successfully!"

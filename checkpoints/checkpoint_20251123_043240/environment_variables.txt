@@ -1,0 +1,19 @@
+Environment Variables (cPanel)
+===============================
+
+DB_HOST=localhost
+DB_USER=theomkiq_charity
+DB_PASSWORD=Unicro@001
+DB_NAME=theomkiq_charity
+NODE_ENV=production
+PORT=5000
+JWT_SECRET=(set in cPanel)
+RAZORPAY_KEY_ID=rzp_live_RhWOsPuVUOT0Xx
+RAZORPAY_KEY_SECRET=(set in cPanel)
+RAZORPAY_WEBHOOK_SECRET=(set in cPanel)
+
+Frontend Build:
+- Razorpay key is HARDCODED in client/src/pages/Donate.js
+- Key: rzp_live_RhWOsPuVUOT0Xx
+- No environment variables needed for frontend build
+

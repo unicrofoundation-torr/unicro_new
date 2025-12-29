@@ -304,6 +304,20 @@ router.post('/razorpay/create-subscription', async (req, res) => {
   }
 });
 
+// Get Razorpay Key ID (public endpoint - key ID is safe to expose)
+router.get('/razorpay/key-id', (req, res) => {
+  try {
+    const keyId = process.env.RAZORPAY_KEY_ID || '';
+    if (!keyId) {
+      return res.status(500).json({ error: 'Razorpay key not configured' });
+    }
+    res.json({ keyId });
+  } catch (error) {
+    console.error('Error getting Razorpay key:', error);
+    res.status(500).json({ error: 'Failed to get Razorpay key' });
+  }
+});
+
 // Check if email exists
 router.post('/check-email', async (req, res) => {
   try {

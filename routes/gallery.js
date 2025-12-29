@@ -3,12 +3,72 @@ const router = express.Router();
 const db = require('../config/database');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const { authenticateToken } = require('./admin');
+
+// Determine upload directory based on environment
+// In production (cPanel): files should go to ~/public_html/uploads/gallery/
+// In development: files go to client/public/uploads/gallery/
+const getUploadDir = () => {
+  const os = require('os');
+  const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
+  const cwd = process.cwd();
+  
+  // Production path: ~/public_html/uploads/gallery (absolute path)
+  const productionPath = path.join(homeDir, 'public_html/uploads/gallery');
+  
+  // Development path: client/public/uploads/gallery (relative to project)
+  const devPath = path.join(cwd, 'client/public/uploads/gallery');
+  
+  // Check if we're in production
+  // Criteria: 
+  // 1. public_html exists in home directory, OR
+  // 2. current working directory contains 'nodejs' (cPanel structure), OR
+  // 3. NODE_ENV is production
+  const isProduction = 
+    fs.existsSync(path.join(homeDir, 'public_html')) ||
+    cwd.includes('nodejs') ||
+    process.env.NODE_ENV === 'production';
+  
+  if (isProduction) {
+    // Production: use absolute path to public_html
+    if (!fs.existsSync(productionPath)) {
+      fs.mkdirSync(productionPath, { recursive: true });
+    }
+    console.log(`[Gallery] Using PRODUCTION upload directory: ${productionPath}`);
+    return productionPath;
+  } else {
+    // Development: use relative path
+    if (!fs.existsSync(devPath)) {
+      fs.mkdirSync(devPath, { recursive: true });
+    }
+    console.log(`[Gallery] Using DEVELOPMENT upload directory: ${devPath}`);
+    return devPath;
+  }
+};
+
+const uploadDirPath = getUploadDir();
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'client/public/uploads/gallery/');
+    // Ensure directory exists before saving
+    try {
+      if (!fs.existsSync(uploadDirPath)) {
+        fs.mkdirSync(uploadDirPath, { recursive: true });
+      }
+      cb(null, uploadDirPath);
+    } catch (error) {
+      console.error('Error creating upload directory:', error);
+      // Fallback - try to create parent directories
+      try {
+        fs.mkdirSync(uploadDirPath, { recursive: true });
+        cb(null, uploadDirPath);
+      } catch (err) {
+        console.error('Failed to create upload directory:', err);
+        cb(new Error('Failed to create upload directory'), null);
+      }
+    }
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -88,6 +148,14 @@ router.get('/:id', authenticateToken, async (req, res) => {
 // Create new gallery image/video
 router.post('/', authenticateToken, upload.single('file'), async (req, res) => {
   try {
+    // Check for multer errors
+    if (req.fileValidationError) {
+      return res.status(400).json({ 
+        error: 'File validation failed',
+        details: req.fileValidationError
+      });
+    }
+    
     const { title, description, image_alt, category, sort_order, is_active } = req.body;
     
     if (!title) {
@@ -95,11 +163,14 @@ router.post('/', authenticateToken, upload.single('file'), async (req, res) => {
     }
     
     if (!req.file) {
-      return res.status(400).json({ error: 'File is required' });
+      return res.status(400).json({ error: 'File is required. Please select a file to upload.' });
     }
     
     const fileUrl = `/uploads/gallery/${req.file.filename}`;
     const fileType = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
+    
+    console.log(`[Gallery] Saving file to: ${uploadDirPath}`);
+    console.log(`[Gallery] File saved as: ${req.file.filename}`);
     
     const [result] = await db.execute(
       'INSERT INTO gallery (title, description, image_url, image_alt, category, sort_order, is_active, file_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
@@ -108,12 +179,34 @@ router.post('/', authenticateToken, upload.single('file'), async (req, res) => {
     
     res.status(201).json({ 
       id: result.insertId, 
-      message: 'Gallery item created successfully' 
+      message: 'Gallery item created successfully',
+      filePath: uploadDirPath,
+      fileUrl: fileUrl
     });
   } catch (error) {
     console.error('Error creating gallery item:', error);
-    res.status(500).json({ error: 'Failed to create gallery item' });
+    console.error('Error stack:', error.stack);
+    // Return more detailed error message
+    const errorMessage = error.message || 'Failed to create gallery item';
+    res.status(500).json({ 
+      error: 'Failed to create gallery item',
+      details: process.env.NODE_ENV === 'development' ? errorMessage : 'Please check server logs for details'
+    });
   }
+});
+
+// Error handler for multer
+router.use((error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: 'File too large. Maximum size is 50MB.' });
+    }
+    return res.status(400).json({ error: 'File upload error', details: error.message });
+  }
+  if (error) {
+    return res.status(400).json({ error: 'File upload failed', details: error.message });
+  }
+  next();
 });
 
 // Update gallery image/video
