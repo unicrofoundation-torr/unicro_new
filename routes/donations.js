@@ -138,25 +138,10 @@ async function createCashfreeOrder({ orderId, amount, customer }) {
 // Update user details when cycle is selected
 router.post('/update-user', async (req, res) => {
   try {
-    await ensureTables();
-    const { name, email, phone, address, cycle } = req.body;
-    
-    if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
-    }
-    
-    // Upsert donor by email
-    const [existing] = await db.execute('SELECT id FROM donors WHERE email = ? LIMIT 1', [email]);
-    let donorId;
-    if (existing.length) {
-      donorId = existing[0].id;
-      await db.execute('UPDATE donors SET name = ?, phone = ? WHERE id = ?', [name || '', phone || '', donorId]);
-    } else {
-      const [ins] = await db.execute('INSERT INTO donors (name, email, phone) VALUES (?, ?, ?)', [name || '', email, phone || '']);
-      donorId = ins.insertId;
-    }
-    
-    res.json({ success: true, donorId, message: 'User details updated' });
+    // Don't create or update donor before payment
+    // Donor will be created only after successful payment via webhook
+    // This endpoint is kept for backward compatibility but does nothing
+    res.json({ success: true, message: 'User details will be saved after payment' });
   } catch (error) {
     console.error('Update user error:', error);
     res.status(500).json({ error: 'Failed to update user details' });
@@ -327,29 +312,9 @@ router.get('/razorpay/key-id', (req, res) => {
 // Check if email exists
 router.post('/check-email', async (req, res) => {
   try {
-    await ensureTables();
-    const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
-    }
-    
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: 'Invalid email format', exists: false });
-    }
-    
-    // Only check for emails with successful payments (active donations)
-    // This prevents blocking users who tried but payment failed
-    const [rows] = await db.execute(
-      `SELECT DISTINCT d.id 
-       FROM donors d 
-       INNER JOIN donations don ON d.id = don.donor_id 
-       WHERE d.email = ? AND don.status = 'active' 
-       LIMIT 1`, 
-      [email]
-    );
-    return res.json({ exists: rows.length > 0 });
+    // Email check removed - donors can donate multiple times
+    // Always return false to allow multiple donations from same email
+    return res.json({ exists: false });
   } catch (error) {
     console.error('Check email error:', error);
     res.status(500).json({ error: 'Failed to check email' });
