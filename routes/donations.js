@@ -32,7 +32,7 @@ async function ensureTables() {
   await db.execute(`
     CREATE TABLE IF NOT EXISTS donations (
       id INT AUTO_INCREMENT PRIMARY KEY,
-      donor_id INT NOT NULL,
+      donor_id INT NULL,
       amount INT NOT NULL,
       currency VARCHAR(10) DEFAULT 'INR',
       cycle VARCHAR(20) DEFAULT 'monthly',
@@ -76,6 +76,13 @@ async function ensureTables() {
     await db.execute(`ALTER TABLE donations ADD COLUMN razorpay_payment_id VARCHAR(100)`);
   } catch (err) {
     // Column already exists, ignore
+  }
+  
+  // Allow NULL for donor_id (for donations created before payment)
+  try {
+    await db.execute(`ALTER TABLE donations MODIFY COLUMN donor_id INT NULL`);
+  } catch (err) {
+    // Column might already allow NULL or error, ignore
   }
   
   // Create payment_transactions table to track each recurring payment
@@ -264,31 +271,72 @@ router.post('/razorpay/create-subscription', async (req, res) => {
     
     // Create donation record WITHOUT donor_id (will be set after payment succeeds)
     // Store donor info in metadata for later use
-    const [donIns] = await db.execute(
-      'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_subscription_id, razorpay_plan_id, metadata) VALUES (NULL, ?, ?, ?, ?, "created", ?, ?, JSON_OBJECT("subscription", ?, "donor_info", JSON_OBJECT("name", ?, "email", ?, "phone", ?, "address", ?)))',
-      [
-        Math.round(amountNum * 100), 
-        'INR', 
-        cycle, 
-        address || '', 
-        subscription.id, 
-        plan.id, 
-        JSON.stringify(subscription),
-        name,
-        email,
-        phone || '',
-        address || ''
-      ]
-    );
-    const donationId = donIns.insertId;
-    
-    res.json({
-      success: true,
-      donationId,
-      subscriptionId: subscription.id,
-      planId: plan.id,
-      subscription: subscription
-    });
+    try {
+      const [donIns] = await db.execute(
+        'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_subscription_id, razorpay_plan_id, metadata) VALUES (NULL, ?, ?, ?, ?, "created", ?, ?, JSON_OBJECT("subscription", ?, "donor_info", JSON_OBJECT("name", ?, "email", ?, "phone", ?, "address", ?)))',
+        [
+          Math.round(amountNum * 100), 
+          'INR', 
+          cycle, 
+          address || '', 
+          subscription.id, 
+          plan.id, 
+          JSON.stringify(subscription),
+          name,
+          email,
+          phone || '',
+          address || ''
+        ]
+      );
+      const donationId = donIns.insertId;
+      
+      res.json({
+        success: true,
+        donationId,
+        subscriptionId: subscription.id,
+        planId: plan.id,
+        subscription: subscription
+      });
+    } catch (dbError) {
+      console.error('Database error creating donation:', dbError);
+      // If donor_id column doesn't allow NULL, try to alter it
+      if (dbError.code === 'ER_BAD_NULL_ERROR' || dbError.message.includes('donor_id')) {
+        try {
+          await db.execute('ALTER TABLE donations MODIFY COLUMN donor_id INT NULL');
+          // Retry the insert
+          const [donIns] = await db.execute(
+            'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_subscription_id, razorpay_plan_id, metadata) VALUES (NULL, ?, ?, ?, ?, "created", ?, ?, JSON_OBJECT("subscription", ?, "donor_info", JSON_OBJECT("name", ?, "email", ?, "phone", ?, "address", ?)))',
+            [
+              Math.round(amountNum * 100), 
+              'INR', 
+              cycle, 
+              address || '', 
+              subscription.id, 
+              plan.id, 
+              JSON.stringify(subscription),
+              name,
+              email,
+              phone || '',
+              address || ''
+            ]
+          );
+          const donationId = donIns.insertId;
+          
+          res.json({
+            success: true,
+            donationId,
+            subscriptionId: subscription.id,
+            planId: plan.id,
+            subscription: subscription
+          });
+        } catch (alterError) {
+          console.error('Error altering table:', alterError);
+          throw dbError; // Throw original error
+        }
+      } else {
+        throw dbError;
+      }
+    }
   } catch (error) {
     console.error('Razorpay subscription error:', error);
     res.status(500).json({ error: 'Failed to create subscription', details: error.message });
