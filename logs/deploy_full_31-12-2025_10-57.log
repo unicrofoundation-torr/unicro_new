@@ -1,3 +1,29 @@
 💾 Taking MySQL Backup (Local)...
 ✅ MySQL backup successful: /mnt/e/kanishk data/projects/UNICRO/backups/charity_website_31-12-2025_10-57.sql
 📦 Pushing latest code to GitHub...
+[main ad55d41] Auto-deploy: 2025-12-31_10-57-50
+ 5 files changed, 1052 insertions(+)
+ create mode 100644 DONATION-PAGE-ANALYSIS.md
+ create mode 100644 DONATION-PAGE-IMPROVEMENTS.md
+ create mode 100644 backups/charity_website_31-12-2025_10-57.sql
+ create mode 100644 logs/deploy_full_31-12-2025_10-57.log
+📦 Installing client dependencies...
+   Dependencies already installed
+🏗️ Building React frontend...
+
+> client@0.1.0 build
+> react-scripts build
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+Creating an optimized production build...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+Failed to compile.
+
+[eslint] 
+src\pages\Donate.js
+  Line 146:33:  'defaultCycle' is not defined  no-undef
+
+Search for the keywords to learn more about each error.
+
+
+❌ React build failed
