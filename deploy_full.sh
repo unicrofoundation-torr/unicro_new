@@ -111,7 +111,6 @@ fi
 
 rsync -avz \
   --progress \
-  --delete \
   --exclude='node_modules/' \
   --exclude='.git/' \
   --exclude='.env' \
@@ -195,15 +194,41 @@ ENDSSH
 
 echo "✅ Backend dependencies installation completed"
 
-# --- Step 8: Display Summary ---
+# --- Step 8: Create .htaccess file for API ---
+echo ""
+echo "📝 Creating .htaccess file in public_html/api/..."
+ssh -i $PRIVATE_KEY -p $CPANEL_PORT $CPANEL_USER@$CPANEL_HOST << 'ENDSSH'
+mkdir -p ~/public_html/api
+cat > ~/public_html/api/.htaccess << 'EOF'
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/theomkiq/nodejs"
+PassengerBaseURI "/api"
+PassengerNodejs "/home/theomkiq/nodevenv/nodejs/14/bin/node"
+PassengerAppType node
+PassengerStartupFile server.js
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+EOF
+
+echo "✅ .htaccess file created successfully!"
+ls -la ~/public_html/api/.htaccess
+ENDSSH
+
+if [ $? -eq 0 ]; then
+    echo "✅ .htaccess file created successfully"
+else
+    echo "⚠️  Warning: .htaccess file creation failed (continuing anyway)"
+fi
+
+# --- Step 9: Display Summary ---
 echo ""
 echo "====================================================="
 echo "🎉 Full Stack Deployment Complete!"
 echo "====================================================="
 echo ""
 echo "📊 Deployment Summary:"
-echo "   ✅ Frontend deployed to: $FRONTEND_DIR"
-echo "   ✅ Backend deployed to: $BACKEND_DIR"
+echo "   ✅ Frontend deployed to: $FRONTEND_DIR (incremental upload)"
+echo "   ✅ Backend deployed to: $BACKEND_DIR (incremental upload)"
+echo "   ✅ .htaccess file created in: ~/public_html/api/"
 echo "   ✅ Logs saved at: $LOG_FILE"
 echo ""
 echo "📋 Next Steps:"
@@ -224,25 +249,20 @@ echo "   - RAZORPAY_KEY_ID=$RAZORPAY_KEY_ID"
 echo "   - RAZORPAY_KEY_SECRET=your_razorpay_secret_key"
 echo "   - RAZORPAY_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxx"
 echo ""
-echo "3. 📝 Create .htaccess file (if Application URL is /api):"
-echo "   - Run: ssh -i ~/.ssh/key_private -p $CPANEL_PORT $CPANEL_USER@$CPANEL_HOST"
-echo "   - Then: mkdir -p ~/public_html/api && cat > ~/public_html/api/.htaccess << 'EOF'"
-echo "   - Paste .htaccess content (see FIX_HTACCESS_ERROR_QUICK.md)"
-echo ""
-echo "4. 🔄 Restart Node.js App in cPanel:"
+echo "3. 🔄 Restart Node.js App in cPanel:"
 echo "   - Go to: cPanel → Setup Node.js App"
 echo "   - Click: 'Restart App' button"
 echo ""
-echo "5. ✅ Test API Endpoints:"
+echo "4. ✅ Test API Endpoints:"
 echo "   - https://theonerupeerevolution.org/api/settings"
 echo "   - https://theonerupeerevolution.org/api/slider"
 echo "   - https://theonerupeerevolution.org/api/gallery"
 echo ""
-echo "6. 🧪 Verify Frontend:"
+echo "5. 🧪 Verify Frontend:"
 echo "   - https://theonerupeerevolution.org"
 echo "   - Check browser console (F12) for errors"
 echo ""
-echo "7. 💳 Test Payment Integration:"
+echo "6. 💳 Test Payment Integration:"
 echo "   - Visit: https://theonerupeerevolution.org/donate"
 echo "   - Complete a test donation"
 echo "   - Check admin panel for donation record"

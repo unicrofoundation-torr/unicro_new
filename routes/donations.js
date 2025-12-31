@@ -79,10 +79,31 @@ async function ensureTables() {
   }
   
   // Allow NULL for donor_id (for donations created before payment)
+  // This migration is important - it allows creating donations before payment succeeds
   try {
-    await db.execute(`ALTER TABLE donations MODIFY COLUMN donor_id INT NULL`);
+    // Check if column allows NULL first
+    const [columnInfo] = await db.execute(`
+      SELECT IS_NULLABLE 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_SCHEMA = DATABASE() 
+      AND TABLE_NAME = 'donations' 
+      AND COLUMN_NAME = 'donor_id'
+    `);
+    
+    if (columnInfo.length > 0 && columnInfo[0].IS_NULLABLE === 'NO') {
+      // Column doesn't allow NULL, modify it
+      await db.execute(`ALTER TABLE donations MODIFY COLUMN donor_id INT NULL`);
+      console.log('✅ Updated donations table to allow NULL for donor_id');
+    }
   } catch (err) {
-    // Column might already allow NULL or error, ignore
+    // If INFORMATION_SCHEMA query fails, try direct alter (might work)
+    try {
+      await db.execute(`ALTER TABLE donations MODIFY COLUMN donor_id INT NULL`);
+      console.log('✅ Updated donations table to allow NULL for donor_id');
+    } catch (alterErr) {
+      // Column might already allow NULL or table doesn't exist yet, ignore
+      console.log('Note: donor_id column migration skipped (may already allow NULL)');
+    }
   }
   
   // Create payment_transactions table to track each recurring payment
@@ -608,12 +629,34 @@ router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), asyn
 router.get('/admin', authenticateToken, async (req, res) => {
   try {
     await ensureTables();
+    // Get filter parameter (default to 'successful' to show only active/paid donations)
+    const filter = req.query.filter || 'successful'; // 'all', 'successful', 'active', 'paid', 'failed', etc.
+    
+    let statusFilter = '';
+    if (filter === 'successful') {
+      // Show only successful donations (active or paid)
+      statusFilter = "AND d.status IN ('active', 'paid')";
+    } else if (filter === 'active') {
+      statusFilter = "AND d.status = 'active'";
+    } else if (filter === 'paid') {
+      statusFilter = "AND d.status = 'paid'";
+    } else if (filter === 'failed') {
+      statusFilter = "AND d.status IN ('failed', 'cancelled')";
+    } else if (filter === 'pending') {
+      statusFilter = "AND d.status = 'created'";
+    }
+    // If filter is 'all', no status filter is applied
+    
     const [rows] = await db.execute(`
       SELECT d.id, d.amount, d.currency, d.cycle, d.status, d.cf_order_id, d.razorpay_subscription_id, d.created_at,
-             r.name, r.email, r.phone,
+             COALESCE(r.name, JSON_EXTRACT(d.metadata, '$.donor_info.name')) as name,
+             COALESCE(r.email, JSON_EXTRACT(d.metadata, '$.donor_info.email')) as email,
+             COALESCE(r.phone, JSON_EXTRACT(d.metadata, '$.donor_info.phone')) as phone,
              (SELECT COUNT(*) FROM payment_transactions pt WHERE pt.donation_id = d.id) as transaction_count,
              (SELECT SUM(pt.amount) FROM payment_transactions pt WHERE pt.donation_id = d.id AND pt.status = 'captured') as total_paid
-      FROM donations d JOIN donors r ON d.donor_id = r.id
+      FROM donations d 
+      LEFT JOIN donors r ON d.donor_id = r.id
+      WHERE 1=1 ${statusFilter}
       ORDER BY d.created_at DESC
       LIMIT 500
     `);
