@@ -603,12 +603,12 @@ router.get('/admin/test-routes', (req, res) => {
 router.get('/admin', authenticateToken, async (req, res) => {
   try {
     await ensureTables();
-    // Get filter parameter (default to 'all' to show all donations)
-    const filter = req.query.filter || 'all'; // 'all', 'successful', 'active', 'paid', 'failed', etc.
+    // Get filter parameter (default to 'successful' to show only successful donations)
+    const filter = req.query.filter || 'successful'; // 'all', 'successful', 'active', 'paid', 'failed', etc.
     
     let statusFilter = '';
     if (filter === 'successful') {
-      // Show only successful donations (active or paid)
+      // Show only successful donations (active or paid) - exclude created, failed, cancelled, paused
       statusFilter = "AND d.status IN ('active', 'paid')";
     } else if (filter === 'active') {
       statusFilter = "AND d.status = 'active'";
