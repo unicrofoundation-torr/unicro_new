@@ -909,58 +909,204 @@ router.post('/admin/verify-and-cleanup', authenticateToken, async (req, res) => 
   }
 });
 
-// Sync all donations with Razorpay (refresh data)
+// Sync all donations with Razorpay (refresh data and create missing records)
 router.post('/admin/sync-all', authenticateToken, async (req, res) => {
   try {
     await ensureTables();
     const razorpay = getRazorpayInstance();
     
-    // Get all donations with Razorpay subscription IDs
-    const [donations] = await db.execute(
-      'SELECT id, razorpay_subscription_id FROM donations WHERE razorpay_subscription_id IS NOT NULL ORDER BY created_at DESC LIMIT 200'
-    );
+    console.log('🔄 Starting sync-all: Fetching all subscriptions from Razorpay...');
     
+    let created = 0;
     let updated = 0;
+    let skipped = 0;
     let errors = [];
     
-    for (const donation of donations) {
-      try {
-        const subscription = await razorpay.subscriptions.fetch(donation.razorpay_subscription_id);
-        
-        // Update status based on Razorpay status
-        let dbStatus = 'created';
-        if (subscription.status === 'active' || subscription.status === 'authenticated') {
-          dbStatus = 'active';
-        } else if (subscription.status === 'paused') {
-          dbStatus = 'paused';
-        } else if (subscription.status === 'cancelled' || subscription.status === 'expired') {
-          dbStatus = 'cancelled';
-        }
-        
-        // Update donation status
-        await db.execute('UPDATE donations SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [dbStatus, donation.id]);
-        
-        // Update total_paid from subscription (if available)
-        if (subscription.quantity && subscription.item) {
-          const totalPaid = subscription.quantity * subscription.item.amount;
-          // This would need to be stored in a separate field or calculated from transactions
-        }
-        
-        updated++;
-      } catch (error) {
-        errors.push({ donationId: donation.id, error: error.message });
+    // Fetch ALL subscriptions from Razorpay (recent ones first)
+    try {
+      console.log('📡 Fetching subscriptions from Razorpay...');
+      const subscriptionsResponse = await razorpay.subscriptions.all({
+        count: 100, // Get last 100 subscriptions
+        skip: 0
+      });
+      
+      if (!subscriptionsResponse || !subscriptionsResponse.items) {
+        console.error('❌ Invalid response from Razorpay:', subscriptionsResponse);
+        return res.status(500).json({ error: 'Invalid response from Razorpay API', details: 'No items in response' });
       }
+      
+      const subscriptions = subscriptionsResponse.items || [];
+      console.log(`📊 Found ${subscriptions.length} subscriptions in Razorpay`);
+      
+      // Get all existing subscription IDs from database for quick lookup
+      const [existingDonations] = await db.execute(
+        'SELECT razorpay_subscription_id FROM donations WHERE razorpay_subscription_id IS NOT NULL'
+      );
+      const existingSubscriptionIds = new Set(
+        existingDonations.map(d => d.razorpay_subscription_id)
+      );
+      console.log(`📊 Found ${existingSubscriptionIds.size} existing subscriptions in database`);
+      
+      // Process each subscription
+      for (const subscription of subscriptions) {
+        try {
+          const subscriptionId = subscription.id;
+          const isExisting = existingSubscriptionIds.has(subscriptionId);
+          
+          if (!isExisting) {
+            // Subscription doesn't exist in database - create it if payment was successful or created
+            if (subscription.status === 'active' || subscription.status === 'authenticated' || subscription.status === 'created' || subscription.status === 'pending') {
+              console.log(`📊 Processing new subscription ${subscriptionId} with status: ${subscription.status}`);
+              
+              // Get donor info from subscription notes
+              const donorInfo = subscription.notes || {};
+              const donorName = donorInfo.donor_name || subscription.customer?.name || '';
+              const donorEmail = donorInfo.donor_email || subscription.customer?.email || '';
+              const donorPhone = donorInfo.donor_phone || subscription.customer?.contact || '';
+              const donorAddress = donorInfo.donor_address || '';
+              const cycle = donorInfo.cycle || 'monthly';
+              const amount = parseFloat(donorInfo.amount || '0');
+              
+              if (donorName && donorEmail) {
+                try {
+                  // Create or get donor
+                  const [existingDonor] = await db.execute('SELECT id FROM donors WHERE email = ? LIMIT 1', [donorEmail]);
+                  let donorId;
+                  
+                  if (existingDonor.length) {
+                    donorId = existingDonor[0].id;
+                    await db.execute('UPDATE donors SET name = ?, phone = ? WHERE id = ?', [donorName, donorPhone || '', donorId]);
+                    console.log(`📝 Updated existing donor #${donorId} for ${donorEmail}`);
+                  } else {
+                    const [ins] = await db.execute('INSERT INTO donors (name, email, phone) VALUES (?, ?, ?)', [donorName, donorEmail, donorPhone || '']);
+                    donorId = ins.insertId;
+                    console.log(`✅ Created new donor #${donorId} for ${donorEmail}`);
+                  }
+                  
+                  // Determine status
+                  const donationStatus = (subscription.status === 'active' || subscription.status === 'authenticated') ? 'active' : 'created';
+                  
+                  // Create donation record
+                  const amountPaise = Math.round(amount * 100);
+                  const metadataJson = JSON.stringify({
+                    subscription: subscription,
+                    donor_info: { name: donorName, email: donorEmail, phone: donorPhone, address: donorAddress }
+                  });
+                  
+                  console.log(`📝 Creating donation: subscriptionId=${subscriptionId}, donorId=${donorId}, amount=${amountPaise}, status=${donationStatus}`);
+                  
+                  const [donIns] = await db.execute(
+                    'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_subscription_id, razorpay_plan_id, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    [
+                      donorId,
+                      amountPaise,
+                      'INR',
+                      cycle,
+                      donorAddress || '',
+                      donationStatus,
+                      subscriptionId,
+                      subscription.plan_id || '',
+                      metadataJson
+                    ]
+                  );
+                  
+                  console.log(`✅ Successfully created donation #${donIns.insertId} for subscription ${subscriptionId}`);
+                  created++;
+                } catch (dbError) {
+                  console.error(`❌ Database error creating donation for subscription ${subscriptionId}:`, dbError);
+                  console.error('Error details:', dbError.message);
+                  errors.push({ subscriptionId: subscriptionId, error: `Database error: ${dbError.message}` });
+                }
+              } else {
+                console.log(`⚠️ Skipping subscription ${subscriptionId} - missing donor info (name: ${donorName || 'empty'}, email: ${donorEmail || 'empty'})`);
+                skipped++;
+              }
+            } else {
+              console.log(`⚠️ Skipping subscription ${subscriptionId} - status: ${subscription.status} (not successful)`);
+              skipped++;
+            }
+          } else {
+            // Subscription exists - update status
+            const [donationRow] = await db.execute(
+              'SELECT id FROM donations WHERE razorpay_subscription_id = ? LIMIT 1',
+              [subscriptionId]
+            );
+            
+            if (donationRow.length > 0) {
+              // Map Razorpay status to our status
+              let dbStatus = 'created';
+              if (subscription.status === 'active' || subscription.status === 'authenticated') {
+                dbStatus = 'active';
+              } else if (subscription.status === 'paused') {
+                dbStatus = 'paused';
+              } else if (subscription.status === 'cancelled' || subscription.status === 'expired') {
+                dbStatus = 'cancelled';
+              }
+              
+              await db.execute('UPDATE donations SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [dbStatus, donationRow[0].id]);
+              updated++;
+            }
+          }
+        } catch (subError) {
+          console.error(`❌ Error processing subscription ${subscription.id}:`, subError.message);
+          errors.push({ subscriptionId: subscription.id, error: subError.message });
+        }
+      }
+      
+      console.log(`✅ Sync completed: ${created} created, ${updated} updated, ${skipped} skipped`);
+      
+      res.json({
+        success: true,
+        message: `Sync completed: ${created} new donations created, ${updated} existing donations updated, ${skipped} skipped`,
+        created,
+        updated,
+        skipped,
+        total: subscriptions.length,
+        errors: errors.length > 0 ? errors : undefined
+      });
+    } catch (fetchError) {
+      console.error('❌ Error fetching subscriptions from Razorpay:', fetchError);
+      res.status(500).json({ 
+        error: 'Failed to fetch subscriptions from Razorpay', 
+        details: fetchError.message 
+      });
     }
-    
-    res.json({
-      success: true,
-      message: `Synced ${updated} donations with Razorpay`,
-      updated,
-      errors: errors.length > 0 ? errors : undefined
-    });
   } catch (error) {
     console.error('Sync all error:', error);
     res.status(500).json({ error: 'Failed to sync all donations', details: error.message });
+  }
+});
+
+// Test endpoint to verify database writes
+router.post('/admin/test-db-write', authenticateToken, async (req, res) => {
+  try {
+    await ensureTables();
+    
+    // Test donor creation
+    const testEmail = `test_${Date.now()}@test.com`;
+    const [donorIns] = await db.execute('INSERT INTO donors (name, email, phone) VALUES (?, ?, ?)', ['Test Donor', testEmail, '1234567890']);
+    const donorId = donorIns.insertId;
+    
+    // Test donation creation
+    const [donIns] = await db.execute(
+      'INSERT INTO donations (donor_id, amount, currency, cycle, status, razorpay_subscription_id) VALUES (?, ?, ?, ?, ?, ?)',
+      [donorId, 100, 'INR', 'monthly', 'created', 'test_sub_' + Date.now()]
+    );
+    const donationId = donIns.insertId;
+    
+    // Clean up test data
+    await db.execute('DELETE FROM donations WHERE id = ?', [donationId]);
+    await db.execute('DELETE FROM donors WHERE id = ?', [donorId]);
+    
+    res.json({
+      success: true,
+      message: 'Database write test successful',
+      testDonorId: donorId,
+      testDonationId: donationId
+    });
+  } catch (error) {
+    console.error('Database write test error:', error);
+    res.status(500).json({ error: 'Database write test failed', details: error.message });
   }
 });
 
