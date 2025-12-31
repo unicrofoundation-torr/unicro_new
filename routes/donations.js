@@ -610,6 +610,9 @@ router.get('/admin', authenticateToken, async (req, res) => {
     if (filter === 'successful') {
       // Show only successful donations (active or paid) - exclude created, failed, cancelled, paused
       statusFilter = "AND d.status IN ('active', 'paid')";
+    } else if (filter === 'all-statuses') {
+      // Show all donations including failed and successful
+      statusFilter = ""; // No filter - show everything
     } else if (filter === 'active') {
       statusFilter = "AND d.status = 'active'";
     } else if (filter === 'paid') {
@@ -618,8 +621,11 @@ router.get('/admin', authenticateToken, async (req, res) => {
       statusFilter = "AND d.status IN ('failed', 'cancelled')";
     } else if (filter === 'pending') {
       statusFilter = "AND d.status = 'created'";
+    } else if (filter === 'all') {
+      // Show all - no filter
+      statusFilter = "";
     }
-    // If filter is 'all', no status filter is applied
+    // Default to successful if no filter specified
     
     const [rows] = await db.execute(`
       SELECT d.id, d.amount, d.currency, d.cycle, d.status, d.cf_order_id, d.razorpay_subscription_id, d.created_at,
