@@ -1,13 +1,17 @@
-💾 Taking MySQL Backup (Local)...
-✅ MySQL backup successful: /mnt/e/kanishk data/projects/UNICRO/backups/charity_website_31-12-2025_05-29.sql
-📦 Pushing latest code to GitHub...
-[main f8e970d] Auto-deploy: 2025-12-31_05-29-41
- 5 files changed, 735 insertions(+), 17 deletions(-)
- create mode 100644 backups/charity_website_31-12-2025_05-29.sql
- create mode 100644 logs/deploy_full_31-12-2025_05-29.log
-📦 Installing client dependencies...
-   Dependencies already installed
-🏗️ Building React frontend...
+
+=====================================================
+📸 Step 1: Updating favicon files with logo...
+=====================================================
+✅ Logo file found: /mnt/e/kanishk data/projects/UNICRO/client/public/uploads/logo-1760602707648-414861542.png
+⚠️  ImageMagick not found. Copying logo file directly...
+   For best results, install ImageMagick: sudo apt-get install imagemagick
+✅ Logo files copied (may need manual resizing for optimal display)
+
+=====================================================
+🏗️ Step 2: Building React frontend...
+=====================================================
+✅ Dependencies already installed, skipping...
+🏗️ Building production bundle...
 
 > client@0.1.0 build
 > react-scripts build
@@ -60,9 +64,9 @@ To ignore, add // eslint-disable-next-line to the line before.
 
 File sizes after gzip:
 
-  135.99 kB (+1.01 kB)  build\static\js\main.b0004eb4.js
-  9.28 kB (+234 B)      build\static\css\main.fd4ca33a.css
-  1.76 kB               build\static\js\453.eb570f4f.chunk.js
+  136.81 kB (+826 B)  build\static\js\main.d6ef2275.js
+  9.28 kB             build\static\css\main.fd4ca33a.css
+  1.76 kB             build\static\js\453.eb570f4f.chunk.js
 
 The project was built assuming it is hosted at /.
 You can control this with the homepage field in your package.json.
@@ -78,102 +82,73 @@ Find out more about deployment here:
   https://cra.link/deployment
 
 ✅ React build successful
-📤 Deploying frontend to cPanel...
+
+=====================================================
+🌐 Step 3: Deploying frontend to server...
+=====================================================
+📤 Uploading build folder to cPanel...
+Source: /mnt/e/kanishk data/projects/UNICRO/client/build
+Destination: theomkiq@server357.web-hosting.com:~/public_html
 sending incremental file list
 ./
 asset-manifest.json
-            517 100%    0.00kB/s    0:00:00              517 100%    0.00kB/s    0:00:00 (xfr#1, to-chk=47/50)
+            517 100%    0.00kB/s    0:00:00              517 100%    0.00kB/s    0:00:00 (xfr#1, to-chk=50/53)
+favicon.ico
+         32,768   8% 1000.00kB/s    0:00:00          408,997 100%    7.36MB/s    0:00:00 (xfr#2, to-chk=49/53)
 index.html
-            854 100%   11.91kB/s    0:00:00              854 100%   11.75kB/s    0:00:00 (xfr#2, to-chk=45/50)
+          1,995 100%   21.41kB/s    0:00:00            1,995 100%   21.41kB/s    0:00:00 (xfr#3, to-chk=48/53)
+logo192.png
+         32,768   8%  273.50kB/s    0:00:01          408,997 100%    2.85MB/s    0:00:00 (xfr#4, to-chk=47/53)
+logo512.png
+         32,768   8%  197.53kB/s    0:00:01          408,997 100%    2.13MB/s    0:00:00 (xfr#5, to-chk=46/53)
 images/
 images/gallery/
 images/our-work/
 static/
 static/css/
 static/css/main.fd4ca33a.css
-         32,768  62%  210.53kB/s    0:00:00           52,182 100%  333.07kB/s    0:00:00 (xfr#3, to-chk=33/50)
+            700   1%    3.29kB/s    0:00:15           52,182 100%  243.82kB/s    0:00:00 (xfr#6, to-chk=36/53)
+static/css/main.fd4ca33a.css.map
+         28,027 100%  115.49kB/s    0:00:00           28,027 100%  115.49kB/s    0:00:00 (xfr#7, to-chk=35/53)
 static/js/
 static/js/453.eb570f4f.chunk.js
-            700  15%    2.50kB/s    0:00:01            4,465 100%   15.91kB/s    0:00:00 (xfr#4, to-chk=32/50)
-static/js/main.b0004eb4.js
-         32,768   6%   53.24kB/s    0:00:09          525,787 100%  826.83kB/s    0:00:00 (xfr#5, to-chk=31/50)
-static/js/main.b0004eb4.js.LICENSE.txt
-          1,433 100%    2.16kB/s    0:00:00            1,433 100%    2.16kB/s    0:00:00 (xfr#6, to-chk=30/50)
+            700  15%    2.17kB/s    0:00:01            4,465 100%   13.84kB/s    0:00:00 (xfr#8, to-chk=34/53)
+static/js/453.eb570f4f.chunk.js.map
+            700   6%    1.87kB/s    0:00:05           10,597 100%   28.20kB/s    0:00:00 (xfr#9, to-chk=33/53)
+static/js/main.d6ef2275.js
+         32,768   6%   53.69kB/s    0:00:09          526,930 100%  835.36kB/s    0:00:00 (xfr#10, to-chk=32/53)
+static/js/main.d6ef2275.js.LICENSE.txt
+          1,433 100%    2.19kB/s    0:00:00            1,433 100%    2.19kB/s    0:00:00 (xfr#11, to-chk=31/53)
+static/js/main.d6ef2275.js.map
+         32,768   1%   47.48kB/s    0:00:43        2,082,199 100%    2.55MB/s    0:00:00 (xfr#12, to-chk=30/53)
 uploads/
 uploads/blogs/
 uploads/gallery/
 uploads/our-work/
 
-sent 148,448 bytes  received 245 bytes  15,651.89 bytes/sec
-total size is 16,450,869  speedup is 110.64
-✅ Frontend deployed successfully
-📤 Deploying backend to cPanel...
-sending incremental file list
-routes/donations.js
-            700   2%    0.00kB/s    0:00:00           28,035 100%   13.03MB/s    0:00:00 (xfr#1, to-chk=8/23)
-
-sent 1,754 bytes  received 266 bytes  367.27 bytes/sec
-total size is 177,144  speedup is 87.70
-✅ Backend files deployed successfully
-📦 Installing backend dependencies on server...
-Pseudo-terminal will not be allocated because stdin is not a terminal.
-   Checking for npm...
-   ⚠️ npm not found - please install dependencies manually in cPanel
-   Go to: cPanel → Setup Node.js App → Your App → NPM Install
-✅ Backend dependencies installation completed
-
-📝 Creating .htaccess file in public_html/api/...
-Pseudo-terminal will not be allocated because stdin is not a terminal.
-✅ .htaccess file created successfully!
--rw-rw-r-- 1 theomkiq theomkiq 293 Dec 31 00:30 /home/theomkiq/public_html/api/.htaccess
-✅ .htaccess file created successfully
+sent 1,789,775 bytes  received 1,073 bytes  238,779.73 bytes/sec
+total size is 19,782,086  speedup is 11.05
+✅ Frontend deployment completed successfully!
 
 =====================================================
-🎉 Full Stack Deployment Complete!
+📝 Step 4: Ensuring .htaccess file exists...
 =====================================================
-
-📊 Deployment Summary:
-   ✅ Frontend deployed to: ~/public_html (incremental upload)
-   ✅ Backend deployed to: ~/nodejs (incremental upload)
-   ✅ .htaccess file created in: ~/public_html/api/
-   ✅ Logs saved at: /mnt/e/kanishk data/projects/UNICRO/logs/deploy_full_31-12-2025_05-29.log
-
-📋 Next Steps:
-
-1. ⚙️  Configure Environment Variables in cPanel:
-   - Go to: cPanel → Setup Node.js App → Your App
-   - Add these environment variables:
-     NODE_ENV=production
-     PORT=5000
-     DB_HOST=localhost
-     DB_USER=theomkiq_charity
-     DB_PASSWORD=Unicro@001
-     DB_NAME=theomkiq_charity (should be: theomkiq_charity)
-     JWT_SECRET=your-secret-key-here
-
-2. 🔑 Add Razorpay Environment Variables:
-   - RAZORPAY_KEY_ID=rzp_live_RhWOsPuVUOT0Xx
-   - RAZORPAY_KEY_SECRET=your_razorpay_secret_key
-   - RAZORPAY_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxx
-
-3. 🔄 Restart Node.js App in cPanel:
-   - Go to: cPanel → Setup Node.js App
-   - Click: 'Restart App' button
-
-4. ✅ Test API Endpoints:
-   - https://theonerupeerevolution.org/api/settings
-   - https://theonerupeerevolution.org/api/slider
-   - https://theonerupeerevolution.org/api/gallery
-
-5. 🧪 Verify Frontend:
-   - https://theonerupeerevolution.org
-   - Check browser console (F12) for errors
-
-6. 💳 Test Payment Integration:
-   - Visit: https://theonerupeerevolution.org/donate
-   - Complete a test donation
-   - Check admin panel for donation record
+✅ .htaccess file created/updated
 
 =====================================================
-🚀 Deployment finished at Wed Dec 31 05:30:15 UTC 2025
+🎉 Deployment Summary
+=====================================================
+✅ Favicon files updated with your logo
+✅ Frontend rebuilt with updated meta tags
+✅ Files deployed to server (incremental upload)
+✅ .htaccess file ensured
+
+📝 Next Steps:
+1. Clear Google's cache using Google Search Console
+2. Request re-indexing of your homepage
+3. Wait 24-48 hours for Google to re-crawl your site
+
+📄 Logs saved at: /mnt/e/kanishk data/projects/UNICRO/logs/update_logo_deploy_31-12-2025_05-44.log
+=====================================================
+✨ All done! Your logo should appear in Google search results soon.
 =====================================================
