@@ -585,12 +585,26 @@ router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), asyn
   }
 });
 
+// Test endpoint to verify routes are loaded (no auth needed for testing)
+// Place this FIRST so it's loaded early
+router.get('/admin/test-routes', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Routes are loaded!',
+    availableEndpoints: [
+      'POST /api/donations/admin/sync-razorpay',
+      'POST /api/donations/admin/verify-and-cleanup',
+      'POST /api/donations/admin/sync-all'
+    ]
+  });
+});
+
 // Admin list
 router.get('/admin', authenticateToken, async (req, res) => {
   try {
     await ensureTables();
-    // Get filter parameter (default to 'successful' to show only active/paid donations)
-    const filter = req.query.filter || 'successful'; // 'all', 'successful', 'active', 'paid', 'failed', etc.
+    // Get filter parameter (default to 'all' to show all donations)
+    const filter = req.query.filter || 'all'; // 'all', 'successful', 'active', 'paid', 'failed', etc.
     
     let statusFilter = '';
     if (filter === 'successful') {
