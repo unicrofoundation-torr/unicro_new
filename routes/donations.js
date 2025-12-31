@@ -332,6 +332,218 @@ router.post('/check-email', async (req, res) => {
   }
 });
 
+// Create/update donor immediately after payment success
+// This ensures donor is in database when success message is shown
+router.post('/razorpay/create-donor', async (req, res) => {
+  try {
+    await ensureTables();
+    const { subscriptionId, name, email, phone, address, amount, cycle } = req.body;
+    
+    console.log('📝 Creating donor after payment success:', { subscriptionId, email, name });
+    
+    if (!subscriptionId || !name || !email) {
+      console.error('❌ Missing required fields:', { subscriptionId: !!subscriptionId, name: !!name, email: !!email });
+      return res.status(400).json({ error: 'Subscription ID, name, and email are required' });
+    }
+    
+    // Verify subscription exists and is active in Razorpay
+    try {
+      const razorpay = getRazorpayInstance();
+      const subscription = await razorpay.subscriptions.fetch(subscriptionId);
+      
+      console.log('📊 Subscription status from Razorpay:', subscription.status);
+      
+      // Only create donor if payment was successful
+      // Also allow 'created' status as payment might be processing
+      if (subscription.status === 'active' || subscription.status === 'authenticated' || subscription.status === 'created') {
+        // Create or update donor
+        const [existingDonor] = await db.execute('SELECT id FROM donors WHERE email = ? LIMIT 1', [email]);
+        let donorId;
+        
+        if (existingDonor.length) {
+          donorId = existingDonor[0].id;
+          await db.execute('UPDATE donors SET name = ?, phone = ? WHERE id = ?', [name, phone || '', donorId]);
+          console.log(`📝 Updated existing donor #${donorId} for ${email}`);
+        } else {
+          const [ins] = await db.execute('INSERT INTO donors (name, email, phone) VALUES (?, ?, ?)', [name, email, phone || '']);
+          donorId = ins.insertId;
+          console.log(`✅ Created new donor #${donorId} for ${email}`);
+        }
+        
+        // Check if donation record exists, if not create it
+        const [existingDonation] = await db.execute(
+          'SELECT id FROM donations WHERE razorpay_subscription_id = ? LIMIT 1',
+          [subscriptionId]
+        );
+        
+        if (existingDonation.length === 0) {
+          // Create donation record
+          // Use 'created' status if subscription is not yet active, 'active' if it is
+          const donationStatus = (subscription.status === 'active' || subscription.status === 'authenticated') ? 'active' : 'created';
+          
+          const [donIns] = await db.execute(
+            'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_subscription_id, razorpay_plan_id, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+              donorId,
+              Math.round((amount || 0) * 100), // Convert to paise
+              'INR',
+              cycle || 'monthly',
+              address || '',
+              donationStatus,
+              subscriptionId,
+              subscription.plan_id || '',
+              JSON.stringify({
+                subscription: subscription,
+                donor_info: { name, email, phone: phone || '', address: address || '' }
+              })
+            ]
+          );
+          
+          console.log(`✅ Created donor #${donorId} and donation #${donIns.insertId} for subscription ${subscriptionId}`);
+          
+          return res.json({
+            success: true,
+            message: 'Donor and donation created successfully',
+            donorId: donorId,
+            donationId: donIns.insertId
+          });
+        } else {
+          // Donation exists, just update donor_id if needed
+          await db.execute('UPDATE donations SET donor_id = ?, status = "active" WHERE id = ? AND (donor_id IS NULL OR donor_id != ?)', 
+            [donorId, existingDonation[0].id, donorId]);
+          
+          console.log(`✅ Updated donation #${existingDonation[0].id} with donor #${donorId}`);
+          
+          return res.json({
+            success: true,
+            message: 'Donor created/updated successfully',
+            donorId: donorId,
+            donationId: existingDonation[0].id
+          });
+        }
+      } else {
+        // Payment not successful yet - but still create donor as payment might be processing
+        console.log('⚠️ Subscription status is:', subscription.status, '- Creating donor anyway as payment may be processing');
+        
+        // Create donor even if status is not active (payment might be processing)
+        const [existingDonor] = await db.execute('SELECT id FROM donors WHERE email = ? LIMIT 1', [email]);
+        let donorId;
+        
+        if (existingDonor.length) {
+          donorId = existingDonor[0].id;
+          await db.execute('UPDATE donors SET name = ?, phone = ? WHERE id = ?', [name, phone || '', donorId]);
+        } else {
+          const [ins] = await db.execute('INSERT INTO donors (name, email, phone) VALUES (?, ?, ?)', [name, email, phone || '']);
+          donorId = ins.insertId;
+        }
+        
+        // Create donation with 'created' status - webhook will update it later
+        const [existingDonation] = await db.execute(
+          'SELECT id FROM donations WHERE razorpay_subscription_id = ? LIMIT 1',
+          [subscriptionId]
+        );
+        
+        if (existingDonation.length === 0) {
+          const [donIns] = await db.execute(
+            'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_subscription_id, razorpay_plan_id, metadata) VALUES (?, ?, ?, ?, ?, "created", ?, ?, ?)',
+            [
+              donorId,
+              Math.round((amount || 0) * 100),
+              'INR',
+              cycle || 'monthly',
+              address || '',
+              subscriptionId,
+              subscription.plan_id || '',
+              JSON.stringify({
+                subscription: subscription,
+                donor_info: { name, email, phone: phone || '', address: address || '' }
+              })
+            ]
+          );
+          
+          console.log(`✅ Created donor #${donorId} and donation #${donIns.insertId} (status: created, will be updated by webhook)`);
+          
+          return res.json({
+            success: true,
+            message: 'Donor and donation created (payment processing)',
+            donorId: donorId,
+            donationId: donIns.insertId,
+            status: 'created'
+          });
+        }
+        
+        return res.json({
+          success: true,
+          message: 'Donor created (payment processing)',
+          donorId: donorId
+        });
+      }
+    } catch (razorpayError) {
+      console.error('❌ Error fetching subscription from Razorpay:', razorpayError);
+      console.error('Error details:', razorpayError.message);
+      
+      // Even if Razorpay fetch fails, create donor based on payment success callback
+      // This is a fallback - the payment handler was called, so payment likely succeeded
+      console.log('⚠️ Razorpay fetch failed, but creating donor anyway (payment callback succeeded)');
+      
+      const [existingDonor] = await db.execute('SELECT id FROM donors WHERE email = ? LIMIT 1', [email]);
+      let donorId;
+      
+      if (existingDonor.length) {
+        donorId = existingDonor[0].id;
+        await db.execute('UPDATE donors SET name = ?, phone = ? WHERE id = ?', [name, phone || '', donorId]);
+      } else {
+        const [ins] = await db.execute('INSERT INTO donors (name, email, phone) VALUES (?, ?, ?)', [name, email, phone || '']);
+        donorId = ins.insertId;
+      }
+      
+      // Create donation with 'created' status
+      const [existingDonation] = await db.execute(
+        'SELECT id FROM donations WHERE razorpay_subscription_id = ? LIMIT 1',
+        [subscriptionId]
+      );
+      
+      if (existingDonation.length === 0) {
+        const [donIns] = await db.execute(
+          'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_subscription_id, razorpay_plan_id, metadata) VALUES (?, ?, ?, ?, ?, "created", ?, ?, ?)',
+          [
+            donorId,
+            Math.round((amount || 0) * 100),
+            'INR',
+            cycle || 'monthly',
+            address || '',
+            subscriptionId,
+            '',
+            JSON.stringify({
+              donor_info: { name, email, phone: phone || '', address: address || '' }
+            })
+          ]
+        );
+        
+        console.log(`✅ Created donor #${donorId} and donation #${donIns.insertId} (fallback - Razorpay fetch failed)`);
+        
+        return res.json({
+          success: true,
+          message: 'Donor and donation created (fallback mode)',
+          donorId: donorId,
+          donationId: donIns.insertId,
+          warning: 'Could not verify with Razorpay, but donor created based on payment callback'
+        });
+      }
+      
+      return res.json({
+        success: true,
+        message: 'Donor created (fallback mode)',
+        donorId: donorId,
+        warning: 'Could not verify with Razorpay'
+      });
+    }
+  } catch (error) {
+    console.error('Create donor error:', error);
+    res.status(500).json({ error: 'Failed to create donor', details: error.message });
+  }
+});
+
 // Create order
 router.post('/cf/order', async (req, res) => {
   try {
