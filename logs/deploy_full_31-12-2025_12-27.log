@@ -1,3 +1,25 @@
 💾 Taking MySQL Backup (Local)...
 ✅ MySQL backup successful: /mnt/e/kanishk data/projects/UNICRO/backups/charity_website_31-12-2025_12-27.sql
 📦 Pushing latest code to GitHub...
+[main 93f6389] Auto-deploy: 2025-12-31_12-27-55
+ 4 files changed, 834 insertions(+), 11 deletions(-)
+ create mode 100644 backups/charity_website_31-12-2025_12-27.sql
+ create mode 100644 logs/deploy_full_31-12-2025_12-27.log
+📦 Installing client dependencies...
+   Dependencies already installed
+🏗️ Building React frontend...
+
+> client@0.1.0 build
+> react-scripts build
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+Creating an optimized production build...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+Failed to compile.
+
+[eslint] 
+src\pages\Donate.js
+Syntax error: Unexpected token, expected "," (347:8) (347:8)
+
+
+❌ React build failed
