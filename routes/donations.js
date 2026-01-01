@@ -1520,6 +1520,102 @@ router.post('/admin/sync-all', authenticateToken, async (req, res) => {
   }
 });
 
+// Get all donors (admin)
+router.get('/admin/donors', authenticateToken, async (req, res) => {
+  try {
+    await ensureTables();
+    const [rows] = await db.execute(`
+      SELECT d.*, 
+             COUNT(dn.id) as donation_count,
+             SUM(dn.amount) as total_donated,
+             MAX(dn.created_at) as last_donation_date
+      FROM donors d
+      LEFT JOIN donations dn ON d.id = dn.donor_id
+      GROUP BY d.id
+      ORDER BY d.created_at DESC
+      LIMIT 1000
+    `);
+    res.json(rows);
+  } catch (e) {
+    console.error('Donors list error:', e.message);
+    res.status(500).json({ error: 'Failed to fetch donors' });
+  }
+});
+
+// Delete a donation (admin)
+router.delete('/admin/donations/:id', authenticateToken, async (req, res) => {
+  try {
+    await ensureTables();
+    const { id } = req.params;
+    
+    // Check if donation exists
+    const [donation] = await db.execute('SELECT id, donor_id FROM donations WHERE id = ?', [id]);
+    
+    if (donation.length === 0) {
+      return res.status(404).json({ error: 'Donation not found' });
+    }
+    
+    // Delete payment transactions first (foreign key constraint)
+    await db.execute('DELETE FROM payment_transactions WHERE donation_id = ?', [id]);
+    
+    // Delete the donation
+    await db.execute('DELETE FROM donations WHERE id = ?', [id]);
+    
+    res.json({ 
+      success: true, 
+      message: 'Donation deleted successfully',
+      deletedId: id
+    });
+  } catch (error) {
+    console.error('Delete donation error:', error);
+    res.status(500).json({ error: 'Failed to delete donation', details: error.message });
+  }
+});
+
+// Delete a donor (admin)
+router.delete('/admin/donors/:id', authenticateToken, async (req, res) => {
+  try {
+    await ensureTables();
+    const { id } = req.params;
+    
+    // Check if donor exists
+    const [donor] = await db.execute('SELECT id FROM donors WHERE id = ?', [id]);
+    
+    if (donor.length === 0) {
+      return res.status(404).json({ error: 'Donor not found' });
+    }
+    
+    // Check if donor has donations
+    const [donations] = await db.execute('SELECT COUNT(*) as count FROM donations WHERE donor_id = ?', [id]);
+    
+    if (donations[0].count > 0) {
+      // Option 1: Delete all related donations and transactions
+      // Get all donation IDs for this donor
+      const [donationIds] = await db.execute('SELECT id FROM donations WHERE donor_id = ?', [id]);
+      
+      for (const donation of donationIds) {
+        // Delete payment transactions
+        await db.execute('DELETE FROM payment_transactions WHERE donation_id = ?', [donation.id]);
+        // Delete donation
+        await db.execute('DELETE FROM donations WHERE id = ?', [donation.id]);
+      }
+    }
+    
+    // Delete the donor
+    await db.execute('DELETE FROM donors WHERE id = ?', [id]);
+    
+    res.json({ 
+      success: true, 
+      message: 'Donor and all associated donations deleted successfully',
+      deletedId: id,
+      deletedDonations: donations[0].count
+    });
+  } catch (error) {
+    console.error('Delete donor error:', error);
+    res.status(500).json({ error: 'Failed to delete donor', details: error.message });
+  }
+});
+
 // Test endpoint to verify database writes
 router.post('/admin/test-db-write', authenticateToken, async (req, res) => {
   try {

@@ -4,7 +4,7 @@ echo "🔧 Complete Razorpay Live Mode Fix"
 echo "====================================================="
 
 # --- Configuration ---
-PROJECT_ROOT="/mnt/e/kanishk data/projects/UNICRO"
+PROJECT_ROOT=   
 CLIENT_DIR="$PROJECT_ROOT/client"
 BUILD_DIR="$CLIENT_DIR/build"
 LOG_DIR="$PROJECT_ROOT/logs"
