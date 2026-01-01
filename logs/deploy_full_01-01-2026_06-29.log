@@ -1,3 +1,25 @@
 💾 Taking MySQL Backup (Local)...
 ✅ MySQL backup successful: /mnt/e/kanishk data/projects/UNICRO/backups/charity_website_01-01-2026_06-29.sql
 📦 Pushing latest code to GitHub...
+[main cb711d1] Auto-deploy: 2026-01-01_06-29-55
+ 3 files changed, 660 insertions(+)
+ create mode 100644 backups/charity_website_01-01-2026_06-29.sql
+ create mode 100644 logs/deploy_full_01-01-2026_06-29.log
+📦 Installing client dependencies...
+   Dependencies already installed
+🏗️ Building React frontend...
+
+> client@0.1.0 build
+> react-scripts build
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+Creating an optimized production build...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+Failed to compile.
+
+[eslint] 
+src\pages\Donate.js
+Syntax error: Expected corresponding JSX closing tag for <>. (1090:4) (1090:4)
+
+
+❌ React build failed
