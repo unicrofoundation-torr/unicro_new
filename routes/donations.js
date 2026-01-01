@@ -33,7 +33,7 @@ async function ensureTables() {
     CREATE TABLE IF NOT EXISTS donations (
       id INT AUTO_INCREMENT PRIMARY KEY,
       donor_id INT NULL,
-      amount INT NOT NULL,
+      amount DECIMAL(10,2) NOT NULL,
       currency VARCHAR(10) DEFAULT 'INR',
       cycle VARCHAR(20) DEFAULT 'monthly',
       purpose VARCHAR(255) DEFAULT '',
@@ -85,6 +85,33 @@ async function ensureTables() {
     // Column already exists, ignore
   }
   
+  // Migrate amount column from INT (paise) to DECIMAL(10,2) (rupees) if needed
+  try {
+    // Check if column is INT
+    const [columnInfo] = await db.execute(`
+      SELECT DATA_TYPE, COLUMN_TYPE 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_SCHEMA = DATABASE() 
+      AND TABLE_NAME = 'donations' 
+      AND COLUMN_NAME = 'amount'
+    `);
+    
+    if (columnInfo.length > 0 && columnInfo[0].DATA_TYPE === 'int') {
+      console.log('🔄 Migrating amount column from INT (paise) to DECIMAL(10,2) (rupees)...');
+      
+      // First, convert existing data from paise to rupees (divide by 100)
+      await db.execute(`UPDATE donations SET amount = amount / 100 WHERE amount > 1000`);
+      
+      // Then change the column type
+      await db.execute(`ALTER TABLE donations MODIFY COLUMN amount DECIMAL(10,2) NOT NULL`);
+      
+      console.log('✅ Amount column migrated to DECIMAL(10,2) successfully');
+    }
+  } catch (err) {
+    // Column might already be DECIMAL, or migration failed - log but don't fail
+    console.log('ℹ️ Amount column migration check:', err.message);
+  }
+  
   // Allow NULL for donor_id (for donations created before payment)
   // This migration is important - it allows creating donations before payment succeeds
   try {
@@ -120,7 +147,7 @@ async function ensureTables() {
       donation_id INT NOT NULL,
       razorpay_payment_id VARCHAR(100) NOT NULL,
       razorpay_subscription_id VARCHAR(100),
-      amount INT NOT NULL,
+      amount DECIMAL(10,2) NOT NULL,
       currency VARCHAR(10) DEFAULT 'INR',
       status ENUM('created','authorized','captured','failed','refunded') DEFAULT 'created',
       payment_method VARCHAR(50),
@@ -134,6 +161,32 @@ async function ensureTables() {
       FOREIGN KEY (donation_id) REFERENCES donations(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
+  
+  // Migrate payment_transactions amount column from INT (paise) to DECIMAL(10,2) (rupees) if needed
+  try {
+    const [txColumnInfo] = await db.execute(`
+      SELECT DATA_TYPE, COLUMN_TYPE 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_SCHEMA = DATABASE() 
+      AND TABLE_NAME = 'payment_transactions' 
+      AND COLUMN_NAME = 'amount'
+    `);
+    
+    if (txColumnInfo.length > 0 && txColumnInfo[0].DATA_TYPE === 'int') {
+      console.log('🔄 Migrating payment_transactions amount column from INT (paise) to DECIMAL(10,2) (rupees)...');
+      
+      // First, convert existing data from paise to rupees (divide by 100)
+      await db.execute(`UPDATE payment_transactions SET amount = amount / 100 WHERE amount > 1000`);
+      
+      // Then change the column type
+      await db.execute(`ALTER TABLE payment_transactions MODIFY COLUMN amount DECIMAL(10,2) NOT NULL`);
+      
+      console.log('✅ payment_transactions amount column migrated to DECIMAL(10,2) successfully');
+    }
+  } catch (err) {
+    // Column might already be DECIMAL, or migration failed - log but don't fail
+    console.log('ℹ️ payment_transactions amount column migration check:', err.message);
+  }
 }
 
 function cfBaseUrl() {
@@ -448,11 +501,12 @@ router.post('/razorpay/create-donor', async (req, res) => {
           
           if (existingDonation.length === 0) {
             // Create donation record for one-time payment
+            // Store amount in rupees (not paise)
             const [donIns] = await db.execute(
               'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_payment_id, razorpay_order_id, metadata) VALUES (?, ?, ?, ?, ?, "paid", ?, ?, ?)',
               [
                 donorId,
-                Math.round((amount || 0) * 100),
+                Number(amount || 0), // Store in rupees
                 'INR',
                 'one-time',
                 address || '',
@@ -550,7 +604,7 @@ router.post('/razorpay/create-donor', async (req, res) => {
             'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_subscription_id, razorpay_plan_id, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [
               donorId,
-              Math.round((amount || 0) * 100), // Convert to paise
+              Number(amount || 0), // Store in rupees
               'INR',
               cycle || 'monthly',
               address || '',
@@ -613,7 +667,7 @@ router.post('/razorpay/create-donor', async (req, res) => {
             'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_subscription_id, razorpay_plan_id, metadata) VALUES (?, ?, ?, ?, ?, "created", ?, ?, ?)',
             [
               donorId,
-              Math.round((amount || 0) * 100),
+              Number(amount || 0), // Store in rupees
               'INR',
               cycle || 'monthly',
               address || '',
@@ -673,7 +727,7 @@ router.post('/razorpay/create-donor', async (req, res) => {
           'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_subscription_id, razorpay_plan_id, metadata) VALUES (?, ?, ?, ?, ?, "created", ?, ?, ?)',
           [
             donorId,
-            Math.round((amount || 0) * 100),
+            Number(amount || 0), // Store in rupees
             'INR',
             cycle || 'monthly',
             address || '',
@@ -733,9 +787,10 @@ router.post('/cf/order', async (req, res) => {
     }
 
     // Create donation row
+    // Store amount in rupees (not paise)
     const [donIns] = await db.execute(
       'INSERT INTO donations (donor_id, amount, currency, cycle, purpose, note, status, metadata) VALUES (?, ?, ?, ?, ?, ?, "created", JSON_OBJECT())',
-      [donorId, amountPaise, 'INR', cycle || 'monthly', purpose || '', note || '']
+      [donorId, Number(amount), 'INR', cycle || 'monthly', purpose || '', note || '']
     );
     const donationId = donIns.insertId;
     const orderId = `DON-${donationId}-${Date.now()}`;
@@ -875,11 +930,12 @@ router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), asyn
               }
               
               // Create donation record with status 'active' (payment succeeded)
+              // Store amount in rupees (not paise)
               const [donIns] = await db.execute(
                 'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_subscription_id, razorpay_plan_id, metadata) VALUES (?, ?, ?, ?, ?, "active", ?, ?, JSON_OBJECT("subscription", ?, "donor_info", JSON_OBJECT("name", ?, "email", ?, "phone", ?, "address", ?)))',
                 [
                   donorId,
-                  Math.round(amount * 100), // Convert to paise
+                  Number(amount), // Store in rupees
                   'INR',
                   cycle,
                   donorAddress || '',
@@ -928,7 +984,9 @@ router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), asyn
         
         if (existingTx.length === 0) {
           // Create a new payment transaction record
-          const paymentAmount = payment.amount || payment.amount_paid || 0;
+          // Razorpay returns amount in paise, convert to rupees for storage
+          const paymentAmountPaise = payment.amount || payment.amount_paid || 0;
+          const paymentAmountRupees = Number(paymentAmountPaise) / 100;
           const paymentStatus = payment.status || 'captured';
           const paymentMethod = payment.method || payment.payment_method || 'unknown';
           const paymentDate = payment.created_at ? new Date(payment.created_at * 1000) : new Date();
@@ -941,7 +999,7 @@ router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), asyn
               donationId,
               payment.id,
               subscription.id,
-              paymentAmount,
+              paymentAmountRupees, // Store in rupees
               payment.currency || 'INR',
               paymentStatus,
               paymentMethod,
@@ -1112,11 +1170,12 @@ router.post('/admin/sync-razorpay', authenticateToken, async (req, res) => {
           }
           
           // Create donation record
+          // Store amount in rupees (not paise)
           const [donIns] = await db.execute(
             'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_subscription_id, razorpay_plan_id, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [
               donorId,
-              Math.round(amount * 100),
+              Number(amount), // Store in rupees
               'INR',
               cycle,
               donorAddress || '',
@@ -1371,19 +1430,19 @@ router.post('/admin/sync-all', authenticateToken, async (req, res) => {
                   const donationStatus = (subscription.status === 'active' || subscription.status === 'authenticated') ? 'active' : 'created';
                   
                   // Create donation record
-                  const amountPaise = Math.round(amount * 100);
+                  // Store amount in rupees (not paise)
                   const metadataJson = JSON.stringify({
                     subscription: subscription,
                     donor_info: { name: donorName, email: donorEmail, phone: donorPhone, address: donorAddress }
                   });
                   
-                  console.log(`📝 Creating donation: subscriptionId=${subscriptionId}, donorId=${donorId}, amount=${amountPaise}, status=${donationStatus}`);
+                  console.log(`📝 Creating donation: subscriptionId=${subscriptionId}, donorId=${donorId}, amount=${amount}, status=${donationStatus}`);
                   
                   const [donIns] = await db.execute(
                     'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_subscription_id, razorpay_plan_id, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     [
                       donorId,
-                      amountPaise,
+                      Number(amount), // Store in rupees
                       'INR',
                       cycle,
                       donorAddress || '',
