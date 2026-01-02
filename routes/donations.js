@@ -44,6 +44,8 @@ async function ensureTables() {
       razorpay_subscription_id VARCHAR(100),
       razorpay_plan_id VARCHAR(100),
       razorpay_payment_id VARCHAR(100),
+      razorpay_order_id VARCHAR(100),
+      razorpay_status VARCHAR(50) DEFAULT NULL,
       status ENUM('created','paid','failed','refunded','active','paused','cancelled') DEFAULT 'created',
       metadata JSON,
       receipt_number VARCHAR(50),
@@ -81,6 +83,13 @@ async function ensureTables() {
   // Add razorpay_order_id column if it doesn't exist (for one-time payments)
   try {
     await db.execute(`ALTER TABLE donations ADD COLUMN razorpay_order_id VARCHAR(100)`);
+  } catch (err) {
+    // Column already exists, ignore
+  }
+  
+  // Add razorpay_status column to store exact Razorpay status (captured, failed, active, etc.)
+  try {
+    await db.execute(`ALTER TABLE donations ADD COLUMN razorpay_status VARCHAR(50) DEFAULT NULL`);
   } catch (err) {
     // Column already exists, ignore
   }
@@ -516,14 +525,17 @@ router.post('/razorpay/create-donor', async (req, res) => {
           if (existingDonation.length === 0) {
             // Create donation record for one-time payment
             // Store amount in rupees (not paise)
+            // Store exact Razorpay payment status (captured, failed, etc.)
+            const razorpayPaymentStatus = payment.status || 'unknown';
             const [donIns] = await db.execute(
-              'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_payment_id, razorpay_order_id, metadata) VALUES (?, ?, ?, ?, ?, "paid", ?, ?, ?)',
+              'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_status, razorpay_payment_id, razorpay_order_id, metadata) VALUES (?, ?, ?, ?, ?, "paid", ?, ?, ?, ?)',
               [
                 donorId,
                 Number(amount || 0), // Store in rupees
                 'INR',
                 'one-time',
                 address || '',
+                razorpayPaymentStatus, // Store exact Razorpay payment status
                 paymentId,
                 orderId,
                 JSON.stringify({
@@ -533,7 +545,7 @@ router.post('/razorpay/create-donor', async (req, res) => {
               ]
             );
             
-            console.log(`✅ Created donor #${donorId} and donation #${donIns.insertId} for one-time payment ${paymentId}`);
+            console.log(`✅ Created donor #${donorId} and donation #${donIns.insertId} for one-time payment ${paymentId} (Razorpay status: ${razorpayPaymentStatus})`);
             
             return res.json({
               success: true,
@@ -890,22 +902,75 @@ router.post('/cf/webhook', express.raw({ type: '*/*' }), async (req, res) => {
 
 // Razorpay webhook
 router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  // IMPORTANT: Always respond quickly to prevent Razorpay from disabling the webhook
+  // Send 200 OK immediately, then process asynchronously if needed
+  
+  let webhookProcessed = false;
+  
   try {
+    // Ensure database tables exist
+    await ensureTables();
+    
     const signature = req.headers['x-razorpay-signature'];
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET || '';
     
-    // Verify signature
-    const crypto = require('crypto');
-    const hash = crypto.createHmac('sha256', webhookSecret).update(JSON.stringify(req.body)).digest('hex');
-    
-    if (hash !== signature) {
-      return res.status(401).json({ error: 'Invalid signature' });
+    if (!webhookSecret) {
+      console.error('❌ RAZORPAY_WEBHOOK_SECRET is not set in environment variables');
+      // Still return 200 to prevent webhook from being disabled
+      return res.status(200).json({ received: true, error: 'Webhook secret not configured' });
     }
     
-    const payload = JSON.parse(req.body.toString());
+    // Get raw body for signature verification (Razorpay sends raw JSON)
+    // Check if body is already a Buffer (from express.raw) or needs conversion
+    let rawBody;
+    if (Buffer.isBuffer(req.body)) {
+      rawBody = req.body.toString('utf8');
+    } else if (typeof req.body === 'string') {
+      rawBody = req.body;
+    } else {
+      // Body was parsed as JSON - this shouldn't happen but handle it
+      console.warn('⚠️ Webhook body was parsed as JSON instead of raw. This may cause signature verification to fail.');
+      rawBody = JSON.stringify(req.body);
+    }
+    
+    console.log('🔍 Webhook Debug - Body type:', typeof req.body, 'Is Buffer:', Buffer.isBuffer(req.body), 'Length:', req.body?.length);
+    
+    // Verify signature
+    const crypto = require('crypto');
+    const hash = crypto.createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
+    
+    if (hash !== signature) {
+      console.error('❌ Webhook signature verification failed');
+      console.error('Expected:', hash);
+      console.error('Received:', signature);
+      // Return 200 to prevent webhook from being disabled, but log the error
+      return res.status(200).json({ received: true, error: 'Invalid signature (logged)' });
+    }
+    
+    // Parse payload
+    let payload;
+    try {
+      payload = JSON.parse(rawBody);
+    } catch (parseError) {
+      console.error('❌ Failed to parse webhook payload:', parseError);
+      return res.status(200).json({ received: true, error: 'Invalid JSON payload' });
+    }
+    
     const event = payload.event;
-    const subscription = payload.payload.subscription?.entity || payload.payload.subscription;
-    const payment = payload.payload.payment?.entity || payload.payload.payment;
+    const subscription = payload.payload?.subscription?.entity || payload.payload?.subscription;
+    const payment = payload.payload?.payment?.entity || payload.payload?.payment;
+    
+    // Log webhook receipt with timestamp
+    const webhookLog = {
+      timestamp: new Date().toISOString(),
+      event: event,
+      subscriptionId: subscription?.id,
+      paymentId: payment?.id,
+      subscriptionStatus: subscription?.status,
+      paymentStatus: payment?.status
+    };
+    console.log(`📥 Webhook received: ${event}`, webhookLog);
+    console.log(`📋 Full webhook payload:`, JSON.stringify(payload, null, 2));
     
     if (subscription?.id) {
       // Check if donation record already exists
@@ -945,14 +1010,17 @@ router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), asyn
               
               // Create donation record with status 'active' (payment succeeded)
               // Store amount in rupees (not paise)
+              // Store exact Razorpay subscription status
+              const razorpayStatus = subscription.status || 'unknown';
               const [donIns] = await db.execute(
-                'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_subscription_id, razorpay_plan_id, metadata) VALUES (?, ?, ?, ?, ?, "active", ?, ?, JSON_OBJECT("subscription", ?, "donor_info", JSON_OBJECT("name", ?, "email", ?, "phone", ?, "address", ?)))',
+                'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_status, razorpay_subscription_id, razorpay_plan_id, metadata) VALUES (?, ?, ?, ?, ?, "active", ?, ?, ?, JSON_OBJECT("subscription", ?, "donor_info", JSON_OBJECT("name", ?, "email", ?, "phone", ?, "address", ?)))',
                 [
                   donorId,
                   Number(amount), // Store in rupees
                   'INR',
                   cycle,
                   donorAddress || '',
+                  razorpayStatus, // Store exact Razorpay status
                   subscription.id,
                   planId,
                   JSON.stringify(subscription),
@@ -972,19 +1040,28 @@ router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), asyn
           // Donation record exists, just update status
           donationId = rows[0].id;
           donorId = rows[0].donor_id;
-          await db.execute('UPDATE donations SET status = "active", updated_at = CURRENT_TIMESTAMP WHERE id = ?', [donationId]);
+          // Store exact Razorpay subscription status
+          const razorpayStatus = subscription.status || 'unknown';
+          await db.execute('UPDATE donations SET status = "active", razorpay_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
+            [razorpayStatus, donationId]);
         }
       } else if (rows.length > 0) {
         // Donation exists, update status for other events
         donationId = rows[0].id;
         donorId = rows[0].donor_id;
         
+        // Store exact Razorpay status
+        const razorpayStatus = subscription?.status || payment?.status || 'unknown';
+        
         if (event === 'subscription.paused') {
-          await db.execute('UPDATE donations SET status = "paused", updated_at = CURRENT_TIMESTAMP WHERE id = ?', [donationId]);
+          await db.execute('UPDATE donations SET status = "paused", razorpay_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
+            [razorpayStatus, donationId]);
         } else if (event === 'subscription.cancelled') {
-          await db.execute('UPDATE donations SET status = "cancelled", updated_at = CURRENT_TIMESTAMP WHERE id = ?', [donationId]);
+          await db.execute('UPDATE donations SET status = "cancelled", razorpay_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
+            [razorpayStatus, donationId]);
         } else if (event === 'payment.failed') {
-          await db.execute('UPDATE donations SET status = "failed", updated_at = CURRENT_TIMESTAMP WHERE id = ?', [donationId]);
+          await db.execute('UPDATE donations SET status = "failed", razorpay_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
+            [razorpayStatus, donationId]);
         }
       }
       
@@ -1028,10 +1105,65 @@ router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), asyn
       }
     }
     
-    res.json({ received: true });
+    // Handle one-time payment events (for payments without subscriptions)
+    if (payment?.id && !subscription?.id) {
+      console.log(`📥 Processing one-time payment event: ${event}`, { paymentId: payment.id });
+      
+      // Find donation by order_id or payment_id
+      const [paymentDonation] = await db.execute(
+        'SELECT id, donor_id FROM donations WHERE razorpay_order_id = ? OR razorpay_payment_id = ? LIMIT 1',
+        [payment.order_id, payment.id]
+      );
+      
+      if (paymentDonation.length > 0) {
+        const donationId = paymentDonation[0].id;
+        
+        // Store exact Razorpay payment status (captured, failed, authorized, etc.)
+        const razorpayPaymentStatus = payment.status || 'unknown';
+        
+        if (event === 'payment.captured' || event === 'payment.authorized') {
+          await db.execute('UPDATE donations SET status = "paid", razorpay_payment_id = ?, razorpay_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
+            [payment.id, razorpayPaymentStatus, donationId]);
+          console.log(`✅ Updated one-time donation #${donationId} to paid status (Razorpay: ${razorpayPaymentStatus})`);
+        } else if (event === 'payment.failed') {
+          await db.execute('UPDATE donations SET status = "failed", razorpay_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
+            [razorpayPaymentStatus, donationId]);
+          console.log(`❌ Updated one-time donation #${donationId} to failed status (Razorpay: ${razorpayPaymentStatus})`);
+        }
+      }
+    }
+    
+    webhookProcessed = true;
+    console.log(`✅ Webhook processed successfully: ${event}`, {
+      timestamp: new Date().toISOString(),
+      event: event,
+      subscriptionId: subscription?.id,
+      paymentId: payment?.id,
+      donationId: donationId || null
+    });
+    
+    // Always return 200 OK to prevent Razorpay from disabling the webhook
+    res.status(200).json({ 
+      received: true, 
+      processed: true, 
+      event: event,
+      timestamp: new Date().toISOString()
+    });
+    
   } catch (error) {
-    console.error('Razorpay webhook error:', error);
-    res.status(500).json({ error: 'Webhook handling failed' });
+    console.error('❌ Razorpay webhook error:', error);
+    console.error('Error stack:', error.stack);
+    
+    // IMPORTANT: Always return 200 OK even on error
+    // This prevents Razorpay from disabling the webhook
+    // Log the error for debugging instead
+    if (!webhookProcessed) {
+      res.status(200).json({ 
+        received: true, 
+        processed: false, 
+        error: 'Webhook processing failed (check logs)' 
+      });
+    }
   }
 });
 
@@ -1232,7 +1364,25 @@ router.post('/admin/sync-razorpay', authenticateToken, async (req, res) => {
         dbStatus = 'active'; // Keep as active even if completed
       }
       
-      await db.execute('UPDATE donations SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [dbStatus, donationId]);
+      // Store exact Razorpay status AND our mapped status
+      await db.execute('UPDATE donations SET status = ?, razorpay_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
+        [dbStatus, razorpayStatus, donationId]);
+      
+      // Also fetch and update payment status if subscription has payments
+      try {
+        // Fetch latest payment for this subscription to get exact payment status
+        const payments = await razorpay.payments.all({ subscription_id: subscriptionId, count: 1 });
+        if (payments && payments.items && payments.items.length > 0) {
+          // Get the latest payment
+          const latestPayment = payments.items[0];
+          // Update with exact payment status (captured, failed, etc.)
+          await db.execute('UPDATE donations SET razorpay_status = ? WHERE id = ?', 
+            [latestPayment.status || razorpayStatus, donationId]);
+        }
+      } catch (payError) {
+        // If payment fetch fails, keep subscription status
+        console.log('Could not fetch payment status:', payError.message);
+      }
       
       // Fetch and sync payment transactions
       try {
@@ -1288,7 +1438,10 @@ router.post('/admin/verify-and-cleanup', authenticateToken, async (req, res) => 
         
         if (subscription.status === 'active' || subscription.status === 'authenticated') {
           // Payment was successful, activate the donation
-          await db.execute('UPDATE donations SET status = "active", updated_at = CURRENT_TIMESTAMP WHERE id = ?', [donation.id]);
+          // Store exact Razorpay subscription status
+          const razorpayStatus = subscription.status;
+          await db.execute('UPDATE donations SET status = "active", razorpay_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
+            [razorpayStatus, donation.id]);
           activated++;
           
           // Create donor if needed (from subscription notes)
@@ -1469,8 +1622,10 @@ router.post('/admin/sync-all', authenticateToken, async (req, res) => {
                   
                   console.log(`📝 Creating donation: subscriptionId=${subscriptionId}, donorId=${donorId}, amount=${amount}, status=${donationStatus}`);
                   
+                  // Store exact Razorpay subscription status
+                  const razorpayStatus = subscription.status || 'unknown';
                   const [donIns] = await db.execute(
-                    'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_subscription_id, razorpay_plan_id, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_status, razorpay_subscription_id, razorpay_plan_id, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     [
                       donorId,
                       Number(amount), // Store in rupees
@@ -1478,6 +1633,7 @@ router.post('/admin/sync-all', authenticateToken, async (req, res) => {
                       cycle,
                       donorAddress || '',
                       donationStatus,
+                      razorpayStatus, // Store exact Razorpay status
                       subscriptionId,
                       subscription.plan_id || '',
                       metadataJson
@@ -1508,6 +1664,7 @@ router.post('/admin/sync-all', authenticateToken, async (req, res) => {
             
             if (donationRow.length > 0) {
               // Map Razorpay status to our status
+              const razorpayStatus = subscription.status;
               let dbStatus = 'created';
               if (subscription.status === 'active' || subscription.status === 'authenticated') {
                 dbStatus = 'active';
@@ -1517,7 +1674,26 @@ router.post('/admin/sync-all', authenticateToken, async (req, res) => {
                 dbStatus = 'cancelled';
               }
               
-              await db.execute('UPDATE donations SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [dbStatus, donationRow[0].id]);
+              // Store exact Razorpay status AND our mapped status
+              await db.execute('UPDATE donations SET status = ?, razorpay_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
+                [dbStatus, razorpayStatus, donationRow[0].id]);
+              
+              // Also fetch payment status for more accurate status
+              try {
+                if (subscription.id) {
+                  // Try to get latest payment status
+                  const payments = await razorpay.payments.all({ subscription_id: subscription.id, count: 1 });
+                  if (payments && payments.items && payments.items.length > 0) {
+                    const latestPayment = payments.items[0];
+                    // Update with exact payment status (captured, failed, etc.)
+                    await db.execute('UPDATE donations SET razorpay_status = ? WHERE id = ?', 
+                      [latestPayment.status || razorpayStatus, donationRow[0].id]);
+                  }
+                }
+              } catch (payError) {
+                // Keep subscription status if payment fetch fails
+                console.log('Could not fetch payment status for subscription:', subscription.id);
+              }
               updated++;
             }
           }

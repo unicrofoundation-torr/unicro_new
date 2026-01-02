@@ -56,7 +56,17 @@ const upload = multer({
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+
+// IMPORTANT: Exclude webhook routes from JSON parsing to preserve raw body for signature verification
+app.use((req, res, next) => {
+  // Skip JSON parsing for webhook routes (they need raw body for signature verification)
+  if (req.path === '/api/donations/razorpay/webhook' || req.path === '/api/donations/cf/webhook') {
+    return next();
+  }
+  // Apply JSON parsing for all other routes
+  express.json()(req, res, next);
+});
+
 app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded files
