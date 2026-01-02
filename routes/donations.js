@@ -1040,12 +1040,17 @@ router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), asyn
     const event = payload.event;
     const subscription = payload.payload?.subscription?.entity || payload.payload?.subscription;
     const payment = payload.payload?.payment?.entity || payload.payload?.payment;
+    const order = payload.payload?.order?.entity || payload.payload?.order;
+    
+    // Initialize donationId at top level to avoid "not defined" errors
+    let donationId = null;
+    let donorId = null;
     
     // Update log entry with event details
     logEntry.eventType = event || 'unknown';
     logEntry.subscriptionId = subscription?.id || null;
     logEntry.paymentId = payment?.id || null;
-    logEntry.orderId = payment?.order_id || null;
+    logEntry.orderId = payment?.order_id || order?.id || null;
     
     // Log webhook receipt with timestamp
     const webhookLog = {
@@ -1062,9 +1067,6 @@ router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), asyn
     if (subscription?.id) {
       // Check if donation record already exists
       const [rows] = await db.execute('SELECT id, donor_id, metadata FROM donations WHERE razorpay_subscription_id = ? LIMIT 1', [subscription.id]);
-      
-      let donationId;
-      let donorId = null;
       
       // If payment is successful, create donation record (if it doesn't exist)
       if (event === 'subscription.activated' || event === 'subscription.charged') {
@@ -1196,19 +1198,22 @@ router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), asyn
     if (payment?.id && !subscription?.id) {
       console.log(`📥 Processing one-time payment event: ${event}`, { paymentId: payment.id });
       
+      const orderId = payment.order_id || order?.id;
+      
       // Find donation by order_id or payment_id
       const [paymentDonation] = await db.execute(
         'SELECT id, donor_id FROM donations WHERE razorpay_order_id = ? OR razorpay_payment_id = ? LIMIT 1',
-        [payment.order_id, payment.id]
+        [orderId, payment.id]
       );
       
       if (paymentDonation.length > 0) {
-        const donationId = paymentDonation[0].id;
+        donationId = paymentDonation[0].id;
+        donorId = paymentDonation[0].donor_id;
         
         // Store exact Razorpay payment status (captured, failed, authorized, etc.)
         const razorpayPaymentStatus = payment.status || 'unknown';
         
-        if (event === 'payment.captured' || event === 'payment.authorized') {
+        if (event === 'payment.captured' || event === 'payment.authorized' || event === 'order.paid') {
           await db.execute('UPDATE donations SET status = "paid", razorpay_payment_id = ?, razorpay_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
             [payment.id, razorpayPaymentStatus, donationId]);
           console.log(`✅ Updated one-time donation #${donationId} to paid status (Razorpay: ${razorpayPaymentStatus})`);
@@ -1216,6 +1221,61 @@ router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), asyn
           await db.execute('UPDATE donations SET status = "failed", razorpay_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', 
             [razorpayPaymentStatus, donationId]);
           console.log(`❌ Updated one-time donation #${donationId} to failed status (Razorpay: ${razorpayPaymentStatus})`);
+        }
+      } else {
+        // Donation record doesn't exist - create it from payment notes
+        // This can happen if webhook arrives before frontend callback creates the donation
+        try {
+          const paymentNotes = payment.notes || {};
+          const orderNotes = order?.notes || {};
+          const notes = { ...orderNotes, ...paymentNotes };
+          
+          const donorName = notes.donor_name || payment.email || '';
+          const donorEmail = notes.donor_email || payment.email || '';
+          const donorPhone = notes.donor_phone || payment.contact || '';
+          const donorAddress = notes.donor_address || '';
+          const amount = notes.amount ? parseFloat(notes.amount) : (payment.amount ? payment.amount / 100 : 0);
+          
+          if (donorName && donorEmail) {
+            // Create or get donor
+            const [existingDonor] = await db.execute('SELECT id FROM donors WHERE email = ? LIMIT 1', [donorEmail]);
+            
+            if (existingDonor.length) {
+              donorId = existingDonor[0].id;
+              await db.execute('UPDATE donors SET name = ?, phone = ? WHERE id = ?', [donorName, donorPhone || '', donorId]);
+            } else {
+              const [ins] = await db.execute('INSERT INTO donors (name, email, phone) VALUES (?, ?, ?)', [donorName, donorEmail, donorPhone || '']);
+              donorId = ins.insertId;
+            }
+            
+            // Create donation record
+            const razorpayPaymentStatus = payment.status || 'unknown';
+            const donationStatus = (event === 'payment.captured' || event === 'order.paid') ? 'paid' : 'created';
+            
+            const [donIns] = await db.execute(
+              'INSERT INTO donations (donor_id, amount, currency, cycle, note, status, razorpay_status, razorpay_payment_id, razorpay_order_id, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+              [
+                donorId,
+                Number(amount), // Store in rupees
+                payment.currency || 'INR',
+                'one-time',
+                donorAddress || '',
+                donationStatus,
+                razorpayPaymentStatus,
+                payment.id,
+                orderId,
+                JSON.stringify({
+                  payment: payment,
+                  order: order,
+                  donor_info: { name: donorName, email: donorEmail, phone: donorPhone, address: donorAddress }
+                })
+              ]
+            );
+            donationId = donIns.insertId;
+            console.log(`✅ Created donation record #${donationId} from webhook for one-time payment ${payment.id}`);
+          }
+        } catch (createError) {
+          console.error('Error creating donation record from webhook:', createError);
         }
       }
     }
