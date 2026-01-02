@@ -1616,6 +1616,113 @@ router.delete('/admin/donors/:id', authenticateToken, async (req, res) => {
   }
 });
 
+// Bulk delete donations (admin)
+router.post('/admin/donations/bulk-delete', authenticateToken, async (req, res) => {
+  try {
+    await ensureTables();
+    const { ids } = req.body; // Array of donation IDs
+    
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'Donation IDs array is required' });
+    }
+    
+    let deleted = 0;
+    let errors = [];
+    
+    for (const id of ids) {
+      try {
+        // Check if donation exists
+        const [donation] = await db.execute('SELECT id FROM donations WHERE id = ?', [id]);
+        
+        if (donation.length === 0) {
+          errors.push({ id, error: 'Not found' });
+          continue;
+        }
+        
+        // Delete payment transactions first
+        await db.execute('DELETE FROM payment_transactions WHERE donation_id = ?', [id]);
+        
+        // Delete the donation
+        await db.execute('DELETE FROM donations WHERE id = ?', [id]);
+        
+        deleted++;
+      } catch (error) {
+        console.error(`Error deleting donation ${id}:`, error);
+        errors.push({ id, error: error.message });
+      }
+    }
+    
+    res.json({
+      success: true,
+      message: `Deleted ${deleted} of ${ids.length} donation(s)`,
+      deleted,
+      total: ids.length,
+      errors: errors.length > 0 ? errors : undefined
+    });
+  } catch (error) {
+    console.error('Bulk delete donations error:', error);
+    res.status(500).json({ error: 'Failed to bulk delete donations', details: error.message });
+  }
+});
+
+// Bulk delete donors (admin)
+router.post('/admin/donors/bulk-delete', authenticateToken, async (req, res) => {
+  try {
+    await ensureTables();
+    const { ids } = req.body; // Array of donor IDs
+    
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'Donor IDs array is required' });
+    }
+    
+    let deleted = 0;
+    let deletedDonations = 0;
+    let errors = [];
+    
+    for (const id of ids) {
+      try {
+        // Check if donor exists
+        const [donor] = await db.execute('SELECT id FROM donors WHERE id = ?', [id]);
+        
+        if (donor.length === 0) {
+          errors.push({ id, error: 'Not found' });
+          continue;
+        }
+        
+        // Get all donation IDs for this donor
+        const [donationIds] = await db.execute('SELECT id FROM donations WHERE donor_id = ?', [id]);
+        
+        // Delete payment transactions and donations
+        for (const donation of donationIds) {
+          await db.execute('DELETE FROM payment_transactions WHERE donation_id = ?', [donation.id]);
+          await db.execute('DELETE FROM donations WHERE id = ?', [donation.id]);
+          deletedDonations++;
+        }
+        
+        // Delete the donor
+        await db.execute('DELETE FROM donors WHERE id = ?', [id]);
+        
+        deleted++;
+      } catch (error) {
+        console.error(`Error deleting donor ${id}:`, error);
+        errors.push({ id, error: error.message });
+      }
+    }
+    
+    res.json({
+      success: true,
+      message: `Deleted ${deleted} donor(s) and ${deletedDonations} related donation(s)`,
+      deleted,
+      deletedDonations,
+      total: ids.length,
+      errors: errors.length > 0 ? errors : undefined
+    });
+  } catch (error) {
+    console.error('Bulk delete donors error:', error);
+    res.status(500).json({ error: 'Failed to bulk delete donors', details: error.message });
+  }
+});
+
 // Test endpoint to verify database writes
 router.post('/admin/test-db-write', authenticateToken, async (req, res) => {
   try {
