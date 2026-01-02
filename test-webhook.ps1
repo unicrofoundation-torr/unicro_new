@@ -48,7 +48,7 @@ $testPayload = @{
 } | ConvertTo-Json -Depth 10
 
 Write-Host "`n🧪 Testing Razorpay Webhook" -ForegroundColor Cyan
-Write-Host "=" * 60
+Write-Host ("=" * 60)
 Write-Host "URL: $WEBHOOK_URL"
 Write-Host "Secret: $($WEBHOOK_SECRET.Substring(0, [Math]::Min(10, $WEBHOOK_SECRET.Length)))..."
 Write-Host "`nPayload:" -ForegroundColor Yellow
@@ -87,5 +87,5 @@ try {
     }
 }
 
-Write-Host "`n" + ("=" * 60)
-
+$separator = "=" * 60
+Write-Host ("`n" + $separator)

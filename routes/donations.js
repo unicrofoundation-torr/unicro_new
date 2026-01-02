@@ -94,6 +94,31 @@ async function ensureTables() {
     // Column already exists, ignore
   }
   
+  // Create webhook_logs table to track all webhook events
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS webhook_logs (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      event_type VARCHAR(100) NOT NULL,
+      razorpay_subscription_id VARCHAR(100),
+      razorpay_payment_id VARCHAR(100),
+      razorpay_order_id VARCHAR(100),
+      signature_valid BOOLEAN DEFAULT FALSE,
+      status VARCHAR(50) DEFAULT 'received',
+      request_payload JSON,
+      response_data JSON,
+      error_message TEXT,
+      processing_time_ms INT DEFAULT 0,
+      ip_address VARCHAR(45),
+      user_agent TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      INDEX (event_type),
+      INDEX (razorpay_subscription_id),
+      INDEX (razorpay_payment_id),
+      INDEX (created_at),
+      INDEX (status)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  
   // Migrate amount column from INT (paise) to DECIMAL(10,2) (rupees) if needed
   try {
     // Check if column is INT
@@ -900,12 +925,53 @@ router.post('/cf/webhook', express.raw({ type: '*/*' }), async (req, res) => {
   }
 });
 
+// Helper function to log webhook events to database
+async function logWebhookEvent(logData) {
+  try {
+    await db.execute(`
+      INSERT INTO webhook_logs 
+      (event_type, razorpay_subscription_id, razorpay_payment_id, razorpay_order_id, 
+       signature_valid, status, request_payload, response_data, error_message, 
+       processing_time_ms, ip_address, user_agent)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      logData.eventType || 'unknown',
+      logData.subscriptionId || null,
+      logData.paymentId || null,
+      logData.orderId || null,
+      logData.signatureValid ? 1 : 0,
+      logData.status || 'received',
+      JSON.stringify(logData.requestPayload || {}),
+      JSON.stringify(logData.responseData || {}),
+      logData.errorMessage || null,
+      logData.processingTimeMs || 0,
+      logData.ipAddress || null,
+      logData.userAgent || null
+    ]);
+  } catch (error) {
+    console.error('❌ Failed to log webhook event to database:', error);
+    // Don't throw - logging failure shouldn't break webhook processing
+  }
+}
+
 // Razorpay webhook
 router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   // IMPORTANT: Always respond quickly to prevent Razorpay from disabling the webhook
   // Send 200 OK immediately, then process asynchronously if needed
   
+  const startTime = Date.now();
   let webhookProcessed = false;
+  let logEntry = {
+    eventType: 'unknown',
+    signatureValid: false,
+    status: 'received',
+    requestPayload: {},
+    responseData: {},
+    errorMessage: null,
+    processingTimeMs: 0,
+    ipAddress: req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+    userAgent: req.headers['user-agent'] || null
+  };
   
   try {
     // Ensure database tables exist
@@ -916,6 +982,10 @@ router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), asyn
     
     if (!webhookSecret) {
       console.error('❌ RAZORPAY_WEBHOOK_SECRET is not set in environment variables');
+      logEntry.status = 'error';
+      logEntry.errorMessage = 'Webhook secret not configured';
+      logEntry.processingTimeMs = Date.now() - startTime;
+      await logWebhookEvent(logEntry);
       // Still return 200 to prevent webhook from being disabled
       return res.status(200).json({ received: true, error: 'Webhook secret not configured' });
     }
@@ -943,22 +1013,39 @@ router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), asyn
       console.error('❌ Webhook signature verification failed');
       console.error('Expected:', hash);
       console.error('Received:', signature);
+      logEntry.status = 'signature_invalid';
+      logEntry.errorMessage = 'Invalid signature';
+      logEntry.processingTimeMs = Date.now() - startTime;
+      await logWebhookEvent(logEntry);
       // Return 200 to prevent webhook from being disabled, but log the error
       return res.status(200).json({ received: true, error: 'Invalid signature (logged)' });
     }
+    
+    logEntry.signatureValid = true;
     
     // Parse payload
     let payload;
     try {
       payload = JSON.parse(rawBody);
+      logEntry.requestPayload = payload;
     } catch (parseError) {
       console.error('❌ Failed to parse webhook payload:', parseError);
+      logEntry.status = 'parse_error';
+      logEntry.errorMessage = `Failed to parse JSON: ${parseError.message}`;
+      logEntry.processingTimeMs = Date.now() - startTime;
+      await logWebhookEvent(logEntry);
       return res.status(200).json({ received: true, error: 'Invalid JSON payload' });
     }
     
     const event = payload.event;
     const subscription = payload.payload?.subscription?.entity || payload.payload?.subscription;
     const payment = payload.payload?.payment?.entity || payload.payload?.payment;
+    
+    // Update log entry with event details
+    logEntry.eventType = event || 'unknown';
+    logEntry.subscriptionId = subscription?.id || null;
+    logEntry.paymentId = payment?.id || null;
+    logEntry.orderId = payment?.order_id || null;
     
     // Log webhook receipt with timestamp
     const webhookLog = {
@@ -1134,35 +1221,56 @@ router.post('/razorpay/webhook', express.raw({ type: 'application/json' }), asyn
     }
     
     webhookProcessed = true;
+    const processingTime = Date.now() - startTime;
+    
+    const successResponse = {
+      received: true, 
+      processed: true, 
+      event: event,
+      timestamp: new Date().toISOString()
+    };
+    
     console.log(`✅ Webhook processed successfully: ${event}`, {
       timestamp: new Date().toISOString(),
       event: event,
       subscriptionId: subscription?.id,
       paymentId: payment?.id,
-      donationId: donationId || null
+      donationId: donationId || null,
+      processingTime: `${processingTime}ms`
     });
     
+    // Log successful webhook processing
+    logEntry.status = 'success';
+    logEntry.responseData = successResponse;
+    logEntry.processingTimeMs = processingTime;
+    await logWebhookEvent(logEntry);
+    
     // Always return 200 OK to prevent Razorpay from disabling the webhook
-    res.status(200).json({ 
-      received: true, 
-      processed: true, 
-      event: event,
-      timestamp: new Date().toISOString()
-    });
+    res.status(200).json(successResponse);
     
   } catch (error) {
     console.error('❌ Razorpay webhook error:', error);
     console.error('Error stack:', error.stack);
     
+    const processingTime = Date.now() - startTime;
+    const errorResponse = { 
+      received: true, 
+      processed: false,
+      error: 'Webhook processing failed (check logs)'
+    };
+    
+    // Log error
+    logEntry.status = 'error';
+    logEntry.errorMessage = error.message || 'Unknown error';
+    logEntry.responseData = errorResponse;
+    logEntry.processingTimeMs = processingTime;
+    await logWebhookEvent(logEntry);
+    
     // IMPORTANT: Always return 200 OK even on error
     // This prevents Razorpay from disabling the webhook
     // Log the error for debugging instead
     if (!webhookProcessed) {
-      res.status(200).json({ 
-        received: true, 
-        processed: false, 
-        error: 'Webhook processing failed (check logs)' 
-      });
+      res.status(200).json(errorResponse);
     }
   }
 });
@@ -2046,6 +2154,192 @@ router.post('/admin/donors/bulk-delete', authenticateToken, async (req, res) => 
   } catch (error) {
     console.error('Bulk delete donors error:', error);
     res.status(500).json({ error: 'Failed to bulk delete donors', details: error.message });
+  }
+});
+
+// Get webhook logs (admin)
+router.get('/admin/webhook-logs', authenticateToken, async (req, res) => {
+  try {
+    await ensureTables();
+    
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const offset = (page - 1) * limit;
+    const eventType = req.query.event_type || null;
+    const status = req.query.status || null;
+    const subscriptionId = req.query.subscription_id || null;
+    
+    let whereClause = 'WHERE 1=1';
+    const params = [];
+    
+    if (eventType) {
+      whereClause += ' AND event_type = ?';
+      params.push(eventType);
+    }
+    
+    if (status) {
+      whereClause += ' AND status = ?';
+      params.push(status);
+    }
+    
+    if (subscriptionId) {
+      whereClause += ' AND razorpay_subscription_id = ?';
+      params.push(subscriptionId);
+    }
+    
+    // Get total count
+    const [countRows] = await db.execute(
+      `SELECT COUNT(*) as total FROM webhook_logs ${whereClause}`,
+      params
+    );
+    const total = countRows[0].total;
+    
+    // Get logs
+    const [rows] = await db.execute(
+      `SELECT * FROM webhook_logs ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      [...params, limit, offset]
+    );
+    
+    // Parse JSON fields
+    const logs = rows.map(row => ({
+      ...row,
+      request_payload: row.request_payload ? JSON.parse(row.request_payload) : null,
+      response_data: row.response_data ? JSON.parse(row.response_data) : null,
+      signature_valid: Boolean(row.signature_valid)
+    }));
+    
+    res.json({
+      success: true,
+      logs,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching webhook logs:', error);
+    res.status(500).json({ error: 'Failed to fetch webhook logs', details: error.message });
+  }
+});
+
+// Get webhook log by ID (admin)
+router.get('/admin/webhook-logs/:id', authenticateToken, async (req, res) => {
+  try {
+    await ensureTables();
+    const { id } = req.params;
+    
+    const [rows] = await db.execute('SELECT * FROM webhook_logs WHERE id = ?', [id]);
+    
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Webhook log not found' });
+    }
+    
+    const log = {
+      ...rows[0],
+      request_payload: rows[0].request_payload ? JSON.parse(rows[0].request_payload) : null,
+      response_data: rows[0].response_data ? JSON.parse(rows[0].response_data) : null,
+      signature_valid: Boolean(rows[0].signature_valid)
+    };
+    
+    res.json({ success: true, log });
+  } catch (error) {
+    console.error('Error fetching webhook log:', error);
+    res.status(500).json({ error: 'Failed to fetch webhook log', details: error.message });
+  }
+});
+
+// Get webhook logs (admin)
+router.get('/admin/webhook-logs', authenticateToken, async (req, res) => {
+  try {
+    await ensureTables();
+    
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const offset = (page - 1) * limit;
+    const eventType = req.query.event_type || null;
+    const status = req.query.status || null;
+    const subscriptionId = req.query.subscription_id || null;
+    
+    let whereClause = 'WHERE 1=1';
+    const params = [];
+    
+    if (eventType) {
+      whereClause += ' AND event_type = ?';
+      params.push(eventType);
+    }
+    
+    if (status) {
+      whereClause += ' AND status = ?';
+      params.push(status);
+    }
+    
+    if (subscriptionId) {
+      whereClause += ' AND razorpay_subscription_id = ?';
+      params.push(subscriptionId);
+    }
+    
+    // Get total count
+    const [countRows] = await db.execute(
+      `SELECT COUNT(*) as total FROM webhook_logs ${whereClause}`,
+      params
+    );
+    const total = countRows[0].total;
+    
+    // Get logs
+    const [rows] = await db.execute(
+      `SELECT * FROM webhook_logs ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      [...params, limit, offset]
+    );
+    
+    // Parse JSON fields
+    const logs = rows.map(row => ({
+      ...row,
+      request_payload: row.request_payload ? JSON.parse(row.request_payload) : null,
+      response_data: row.response_data ? JSON.parse(row.response_data) : null,
+      signature_valid: Boolean(row.signature_valid)
+    }));
+    
+    res.json({
+      success: true,
+      logs,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching webhook logs:', error);
+    res.status(500).json({ error: 'Failed to fetch webhook logs', details: error.message });
+  }
+});
+
+// Get webhook log by ID (admin)
+router.get('/admin/webhook-logs/:id', authenticateToken, async (req, res) => {
+  try {
+    await ensureTables();
+    const { id } = req.params;
+    
+    const [rows] = await db.execute('SELECT * FROM webhook_logs WHERE id = ?', [id]);
+    
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Webhook log not found' });
+    }
+    
+    const log = {
+      ...rows[0],
+      request_payload: rows[0].request_payload ? JSON.parse(rows[0].request_payload) : null,
+      response_data: rows[0].response_data ? JSON.parse(rows[0].response_data) : null,
+      signature_valid: Boolean(rows[0].signature_valid)
+    };
+    
+    res.json({ success: true, log });
+  } catch (error) {
+    console.error('Error fetching webhook log:', error);
+    res.status(500).json({ error: 'Failed to fetch webhook log', details: error.message });
   }
 });
 

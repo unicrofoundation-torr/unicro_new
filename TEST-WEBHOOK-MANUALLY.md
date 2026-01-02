@@ -25,7 +25,33 @@ This guide explains how to manually test your Razorpay webhook endpoint and view
 
 ---
 
-## Method 2: Using cURL (Command Line)
+## Method 2: Using Bash Script (WSL/Ubuntu - Recommended)
+
+### Step 1: Set Webhook Secret
+```bash
+export RAZORPAY_WEBHOOK_SECRET="your_webhook_secret_here"
+```
+
+### Step 2: Run the Script
+```bash
+# Make script executable (first time only)
+chmod +x test-webhook.sh
+
+# Run the script
+./test-webhook.sh
+```
+
+The script will:
+- Generate a test payload
+- Create the HMAC signature automatically
+- Send the webhook request
+- Display the response with colored output
+
+**Note:** This script is designed for WSL/Ubuntu (like your `deploy_full.sh` script).
+
+---
+
+## Method 3: Using cURL (Command Line)
 
 ### Step 1: Get Your Webhook Secret
 ```bash
@@ -92,7 +118,7 @@ curl -X POST https://theonerupeerevolution.org/api/donations/razorpay/webhook \
 
 ---
 
-## Method 3: Using Postman
+## Method 4: Using Postman
 
 ### Step 1: Create New Request
 1. Open Postman
@@ -134,7 +160,7 @@ Click **Send** and check the response.
 
 ---
 
-## Method 4: Using Node.js Script
+## Method 5: Using Node.js Script
 
 Create `test-webhook.js`:
 ```javascript
