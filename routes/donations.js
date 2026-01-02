@@ -187,6 +187,20 @@ async function ensureTables() {
     // Column might already be DECIMAL, or migration failed - log but don't fail
     console.log('ℹ️ payment_transactions amount column migration check:', err.message);
   }
+  
+  // Create table to track manually deleted subscriptions/orders (to prevent recreation during sync)
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS deleted_razorpay_records (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      razorpay_subscription_id VARCHAR(100),
+      razorpay_order_id VARCHAR(100),
+      deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      deleted_by VARCHAR(50) DEFAULT 'admin',
+      reason VARCHAR(255) DEFAULT 'Manual deletion',
+      INDEX (razorpay_subscription_id),
+      INDEX (razorpay_order_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
 }
 
 function cfBaseUrl() {
@@ -1390,11 +1404,28 @@ router.post('/admin/sync-all', authenticateToken, async (req, res) => {
       );
       console.log(`📊 Found ${existingSubscriptionIds.size} existing subscriptions in database`);
       
+      // Get all deleted subscription IDs to skip during sync
+      const [deletedRecords] = await db.execute(
+        'SELECT razorpay_subscription_id FROM deleted_razorpay_records WHERE razorpay_subscription_id IS NOT NULL'
+      );
+      const deletedSubscriptionIds = new Set(
+        deletedRecords.map(r => r.razorpay_subscription_id)
+      );
+      console.log(`🚫 Found ${deletedSubscriptionIds.size} manually deleted subscriptions (will skip during sync)`);
+      
       // Process each subscription
       for (const subscription of subscriptions) {
         try {
           const subscriptionId = subscription.id;
           const isExisting = existingSubscriptionIds.has(subscriptionId);
+          const isDeleted = deletedSubscriptionIds.has(subscriptionId);
+          
+          // Skip if this subscription was manually deleted
+          if (isDeleted) {
+            console.log(`🚫 Skipping subscription ${subscriptionId} - was manually deleted`);
+            skipped++;
+            continue;
+          }
           
           if (!isExisting) {
             // Subscription doesn't exist in database - create it if payment was successful or created
@@ -1555,11 +1586,44 @@ router.delete('/admin/donations/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Donation not found' });
     }
     
+    // Get subscription/order ID before deleting
+    const [donationInfo] = await db.execute(
+      'SELECT razorpay_subscription_id, razorpay_order_id FROM donations WHERE id = ?',
+      [id]
+    );
+    
+    const subscriptionId = donationInfo[0]?.razorpay_subscription_id;
+    const orderId = donationInfo[0]?.razorpay_order_id;
+    
     // Delete payment transactions first (foreign key constraint)
     await db.execute('DELETE FROM payment_transactions WHERE donation_id = ?', [id]);
     
     // Delete the donation
     await db.execute('DELETE FROM donations WHERE id = ?', [id]);
+    
+    // Track deleted subscription/order to prevent recreation during sync
+    if (subscriptionId) {
+      try {
+        await db.execute(
+          'INSERT INTO deleted_razorpay_records (razorpay_subscription_id, reason) VALUES (?, ?) ON DUPLICATE KEY UPDATE deleted_at = CURRENT_TIMESTAMP',
+          [subscriptionId, 'Donation deleted by admin']
+        );
+      } catch (err) {
+        // Ignore if already exists or table doesn't exist yet
+        console.log('Note: Could not track deleted subscription:', err.message);
+      }
+    }
+    if (orderId) {
+      try {
+        await db.execute(
+          'INSERT INTO deleted_razorpay_records (razorpay_order_id, reason) VALUES (?, ?) ON DUPLICATE KEY UPDATE deleted_at = CURRENT_TIMESTAMP',
+          [orderId, 'Donation deleted by admin']
+        );
+      } catch (err) {
+        // Ignore if already exists or table doesn't exist yet
+        console.log('Note: Could not track deleted order:', err.message);
+      }
+    }
     
     res.json({ 
       success: true, 
@@ -1590,14 +1654,39 @@ router.delete('/admin/donors/:id', authenticateToken, async (req, res) => {
     
     if (donations[0].count > 0) {
       // Option 1: Delete all related donations and transactions
-      // Get all donation IDs for this donor
-      const [donationIds] = await db.execute('SELECT id FROM donations WHERE donor_id = ?', [id]);
+      // Get all donation info (including subscription/order IDs) for this donor
+      const [donationInfo] = await db.execute(
+        'SELECT id, razorpay_subscription_id, razorpay_order_id FROM donations WHERE donor_id = ?',
+        [id]
+      );
       
-      for (const donation of donationIds) {
+      for (const donation of donationInfo) {
         // Delete payment transactions
         await db.execute('DELETE FROM payment_transactions WHERE donation_id = ?', [donation.id]);
         // Delete donation
         await db.execute('DELETE FROM donations WHERE id = ?', [donation.id]);
+        
+        // Track deleted subscription/order to prevent recreation during sync
+        if (donation.razorpay_subscription_id) {
+          try {
+            await db.execute(
+              'INSERT INTO deleted_razorpay_records (razorpay_subscription_id, reason) VALUES (?, ?) ON DUPLICATE KEY UPDATE deleted_at = CURRENT_TIMESTAMP',
+              [donation.razorpay_subscription_id, 'Donor deleted by admin']
+            );
+          } catch (err) {
+            console.log('Note: Could not track deleted subscription:', err.message);
+          }
+        }
+        if (donation.razorpay_order_id) {
+          try {
+            await db.execute(
+              'INSERT INTO deleted_razorpay_records (razorpay_order_id, reason) VALUES (?, ?) ON DUPLICATE KEY UPDATE deleted_at = CURRENT_TIMESTAMP',
+              [donation.razorpay_order_id, 'Donor deleted by admin']
+            );
+          } catch (err) {
+            console.log('Note: Could not track deleted order:', err.message);
+          }
+        }
       }
     }
     
@@ -1639,11 +1728,42 @@ router.post('/admin/donations/bulk-delete', authenticateToken, async (req, res) 
           continue;
         }
         
+        // Get subscription/order ID before deleting
+        const [donationInfo] = await db.execute(
+          'SELECT razorpay_subscription_id, razorpay_order_id FROM donations WHERE id = ?',
+          [id]
+        );
+        
+        const subscriptionId = donationInfo[0]?.razorpay_subscription_id;
+        const orderId = donationInfo[0]?.razorpay_order_id;
+        
         // Delete payment transactions first
         await db.execute('DELETE FROM payment_transactions WHERE donation_id = ?', [id]);
         
         // Delete the donation
         await db.execute('DELETE FROM donations WHERE id = ?', [id]);
+        
+        // Track deleted subscription/order to prevent recreation during sync
+        if (subscriptionId) {
+          try {
+            await db.execute(
+              'INSERT INTO deleted_razorpay_records (razorpay_subscription_id, reason) VALUES (?, ?) ON DUPLICATE KEY UPDATE deleted_at = CURRENT_TIMESTAMP',
+              [subscriptionId, 'Bulk donation deletion']
+            );
+          } catch (err) {
+            console.log('Note: Could not track deleted subscription:', err.message);
+          }
+        }
+        if (orderId) {
+          try {
+            await db.execute(
+              'INSERT INTO deleted_razorpay_records (razorpay_order_id, reason) VALUES (?, ?) ON DUPLICATE KEY UPDATE deleted_at = CURRENT_TIMESTAMP',
+              [orderId, 'Bulk donation deletion']
+            );
+          } catch (err) {
+            console.log('Note: Could not track deleted order:', err.message);
+          }
+        }
         
         deleted++;
       } catch (error) {
@@ -1692,11 +1812,41 @@ router.post('/admin/donors/bulk-delete', authenticateToken, async (req, res) => 
         // Get all donation IDs for this donor
         const [donationIds] = await db.execute('SELECT id FROM donations WHERE donor_id = ?', [id]);
         
+        // Get subscription/order IDs before deleting donations
+        const [donationInfo] = await db.execute(
+          'SELECT razorpay_subscription_id, razorpay_order_id FROM donations WHERE donor_id = ?',
+          [id]
+        );
+        
         // Delete payment transactions and donations
         for (const donation of donationIds) {
           await db.execute('DELETE FROM payment_transactions WHERE donation_id = ?', [donation.id]);
           await db.execute('DELETE FROM donations WHERE id = ?', [donation.id]);
           deletedDonations++;
+        }
+        
+        // Track deleted subscriptions/orders to prevent recreation during sync
+        for (const info of donationInfo) {
+          if (info.razorpay_subscription_id) {
+            try {
+              await db.execute(
+                'INSERT INTO deleted_razorpay_records (razorpay_subscription_id, reason) VALUES (?, ?) ON DUPLICATE KEY UPDATE deleted_at = CURRENT_TIMESTAMP',
+                [info.razorpay_subscription_id, 'Donor deleted by admin']
+              );
+            } catch (err) {
+              console.log('Note: Could not track deleted subscription:', err.message);
+            }
+          }
+          if (info.razorpay_order_id) {
+            try {
+              await db.execute(
+                'INSERT INTO deleted_razorpay_records (razorpay_order_id, reason) VALUES (?, ?) ON DUPLICATE KEY UPDATE deleted_at = CURRENT_TIMESTAMP',
+                [info.razorpay_order_id, 'Donor deleted by admin']
+              );
+            } catch (err) {
+              console.log('Note: Could not track deleted order:', err.message);
+            }
+          }
         }
         
         // Delete the donor
